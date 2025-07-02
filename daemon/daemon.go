@@ -3,6 +3,7 @@ package daemon
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -173,14 +174,24 @@ func StartManager(addr string) error {
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 
-	// Channel to signal when the server is done.
+	// Try to start the server
+	errChan := make(chan error, 1)
 	done := make(chan struct{})
+
 	go func() {
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			fmt.Errorf("daemon ListenAndServe: %v", err)
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			errChan <- err
 		}
 		close(done)
 	}()
+
+	// Check if server started successfully
+	select {
+	case err := <-errChan:
+		return fmt.Errorf("failed to start daemon: %w", err)
+	case <-time.After(100 * time.Millisecond):
+		// Server started successfully
+	}
 
 	// Set up channel on which to send signal notifications.
 	quit := make(chan os.Signal, 1)
@@ -198,7 +209,7 @@ func StartManager(addr string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
-		fmt.Errorf("daemon forced to shutdown: %v", err)
+		fmt.Fprintf(os.Stderr, "daemon forced to shutdown: %v\n", err)
 	}
 
 	<-done
