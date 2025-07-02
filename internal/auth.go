@@ -5,16 +5,45 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 
 	"github.com/anyproto/anytype-heart/pb"
 )
 
+// getDefaultDataPath returns the default data path for Anytype based on the operating system
+func getDefaultDataPath() string {
+	if dataPath := os.Getenv("DATA_PATH"); dataPath != "" {
+		return dataPath
+	}
+
+	baseDir := getDefaultWorkDir()
+	return filepath.Join(baseDir, "data")
+}
+
+// getDefaultWorkDir returns the default work directory for Anytype based on the operating system
+func getDefaultWorkDir() string {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		homeDir = "."
+	}
+
+	switch runtime.GOOS {
+	case "darwin":
+		return filepath.Join(homeDir, "Library", "Application Support", "anytype")
+	case "windows":
+		return filepath.Join(homeDir, "AppData", "Roaming", "anytype")
+	default:
+		return filepath.Join(homeDir, ".config", "anytype")
+	}
+}
+
 // LoginAccount performs the common steps for logging in with a given mnemonic and root path.
 func LoginAccount(mnemonic, rootPath string) error {
 	if rootPath == "" {
-		rootPath = "/Users/jmetrikat/Library/Application Support/anytype/alpha/data"
+		rootPath = getDefaultDataPath()
 	}
 
 	client, err := GetGRPCClient()
@@ -28,9 +57,9 @@ func LoginAccount(mnemonic, rootPath string) error {
 
 	// Set initial parameters.
 	_, err = client.InitialSetParameters(ctx, &pb.RpcInitialSetParametersRequest{
-		Platform: "Mac",
+		Platform: runtime.GOOS,
 		Version:  "0.0.0-test",
-		Workdir:  "/Users/jmetrikat/Library/Application Support/anytype",
+		Workdir:  getDefaultWorkDir(),
 	})
 	if err != nil {
 		return fmt.Errorf("failed to set initial parameters: %w", err)
