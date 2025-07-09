@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -10,13 +11,25 @@ import (
 	"github.com/anyproto/anytype-cli/cmd/server"
 	"github.com/anyproto/anytype-cli/cmd/shell"
 	"github.com/anyproto/anytype-cli/cmd/space"
+	"github.com/anyproto/anytype-cli/cmd/version"
+	"github.com/anyproto/anytype-cli/internal"
 )
 
-var rootCmd = &cobra.Command{
-	Use:   "anytype <command> <subcommand> [flags]",
-	Short: "Anytype CLI",
-	Long:  "Seamlessly interact with Anytype from the command line",
-}
+var (
+	versionFlag bool
+	rootCmd = &cobra.Command{
+		Use:   "anytype <command> <subcommand> [flags]",
+		Short: "Anytype CLI",
+		Long:  "Seamlessly interact with Anytype from the command line",
+		Run: func(cmd *cobra.Command, args []string) {
+			if versionFlag {
+				printVersion()
+				return
+			}
+			cmd.Help()
+		},
+	}
+)
 
 // Execute runs the root command
 func Execute() {
@@ -26,11 +39,18 @@ func Execute() {
 }
 
 func init() {
+	rootCmd.Flags().BoolVarP(&versionFlag, "version", "v", false, "Show version information")
+	
 	rootCmd.AddCommand(
 		auth.NewAuthCmd(),
 		server.NewServerCmd(),
 		shell.NewShellCmd(rootCmd),
 		space.NewSpaceCmd(),
 		daemon.NewDaemonCmd(),
+		version.NewVersionCmd(),
 	)
+}
+
+func printVersion() {
+	fmt.Println(internal.GetVersionBrief())
 }

@@ -58,7 +58,7 @@ func LoginAccount(mnemonic, rootPath string) error {
 	// Set initial parameters.
 	_, err = client.InitialSetParameters(ctx, &pb.RpcInitialSetParametersRequest{
 		Platform: runtime.GOOS,
-		Version:  "0.0.0-test",
+		Version:  Version,
 		Workdir:  getDefaultWorkDir(),
 	})
 	if err != nil {
