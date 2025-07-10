@@ -16,28 +16,30 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
+const defaultTimeout = 5 * time.Second
+
 var (
 	clientInstance service.ClientCommandsClient
 	grpcConn       *grpc.ClientConn
 	once           sync.Once
+	initErr        error
 )
 
 // GetGRPCClient initializes (if needed) and returns the shared gRPC client
 func GetGRPCClient() (service.ClientCommandsClient, error) {
-	var err error
-
 	// Ensure we only initialize once (singleton)
 	once.Do(func() {
+		var err error
 		grpcConn, err = grpc.NewClient("dns:///127.0.0.1:31007", grpc.WithTransportCredentials(insecure.NewCredentials()))
 		if err != nil {
-			fmt.Println("Failed to connect to gRPC server:", err)
+			initErr = fmt.Errorf("failed to connect to gRPC server: %w", err)
 			return
 		}
 		clientInstance = service.NewClientCommandsClient(grpcConn)
 	})
 
-	if err != nil {
-		return nil, err
+	if initErr != nil {
+		return nil, initErr
 	}
 	return clientInstance, nil
 }
@@ -45,21 +47,17 @@ func GetGRPCClient() (service.ClientCommandsClient, error) {
 // CloseGRPCConnection ensures the connection is properly closed
 func CloseGRPCConnection() {
 	if grpcConn != nil {
-		grpcConn.Close()
+		_ = grpcConn.Close()
 	}
 }
 
 // IsGRPCServerRunning checks if the gRPC server is reachable
 func IsGRPCServerRunning() (bool, error) {
-	client, err := GetGRPCClient()
-	if err != nil {
-		return false, err
-	}
+	err := GRPCCallNoAuth(func(ctx context.Context, client service.ClientCommandsClient) error {
+		_, err := client.AppGetVersion(ctx, &pb.RpcAppGetVersionRequest{})
+		return err
+	})
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	_, err = client.AppGetVersion(ctx, &pb.RpcAppGetVersionRequest{})
 	if err != nil {
 		if strings.Contains(err.Error(), "connection refused") {
 			return false, nil
@@ -78,4 +76,36 @@ func ClientContextWithAuth(token string) context.Context {
 func ClientContextWithAuthTimeout(token string, timeout time.Duration) (context.Context, context.CancelFunc) {
 	ctx := ClientContextWithAuth(token)
 	return context.WithTimeout(ctx, timeout)
+}
+
+// GRPCCall is a helper that reduces boilerplate for gRPC calls
+// It gets the client, token, creates context with timeout, and executes the function
+func GRPCCall(fn func(ctx context.Context, client service.ClientCommandsClient) error) error {
+	client, err := GetGRPCClient()
+	if err != nil {
+		return fmt.Errorf("error connecting to gRPC server: %w", err)
+	}
+
+	token, err := GetStoredToken()
+	if err != nil {
+		return fmt.Errorf("failed to get stored token: %w", err)
+	}
+
+	ctx, cancel := ClientContextWithAuthTimeout(token, defaultTimeout)
+	defer cancel()
+
+	return fn(ctx, client)
+}
+
+// GRPCCallNoAuth is like GRPCCall but without authentication
+func GRPCCallNoAuth(fn func(ctx context.Context, client service.ClientCommandsClient) error) error {
+	client, err := GetGRPCClient()
+	if err != nil {
+		return fmt.Errorf("error connecting to gRPC server: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
+	defer cancel()
+
+	return fn(ctx, client)
 }

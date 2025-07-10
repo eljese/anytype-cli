@@ -4,13 +4,12 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	"github.com/anyproto/anytype-heart/pb"
+	"github.com/anyproto/anytype-heart/pb/service"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
-	"time"
-
-	"github.com/anyproto/anytype-heart/pb"
 )
 
 // getDefaultDataPath returns the default data path for Anytype based on the operating system
@@ -49,44 +48,45 @@ func LoginAccount(mnemonic, rootPath, apiAddr string) error {
 		apiAddr = "127.0.0.1:31009"
 	}
 
-	client, err := GetGRPCClient()
-	if err != nil {
-		return fmt.Errorf("error connecting to gRPC server: %w", err)
-	}
+	var sessionToken string
 
-	// Create a context for the initial calls.
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
+	// Initial unauthenticated calls
+	err := GRPCCallNoAuth(func(ctx context.Context, client service.ClientCommandsClient) error {
+		// Set initial parameters.
+		_, err := client.InitialSetParameters(ctx, &pb.RpcInitialSetParametersRequest{
+			Platform: runtime.GOOS,
+			Version:  Version,
+			Workdir:  getDefaultWorkDir(),
+		})
+		if err != nil {
+			return fmt.Errorf("failed to set initial parameters: %w", err)
+		}
 
-	// Set initial parameters.
-	_, err = client.InitialSetParameters(ctx, &pb.RpcInitialSetParametersRequest{
-		Platform: runtime.GOOS,
-		Version:  Version,
-		Workdir:  getDefaultWorkDir(),
-	})
-	if err != nil {
-		return fmt.Errorf("failed to set initial parameters: %w", err)
-	}
-
-	// Recover the wallet.
-	_, err = client.WalletRecover(ctx, &pb.RpcWalletRecoverRequest{
-		Mnemonic: mnemonic,
-		RootPath: rootPath,
-	})
-	if err != nil {
-		return fmt.Errorf("wallet recovery failed: %w", err)
-	}
-
-	// Create a session.
-	resp, err := client.WalletCreateSession(ctx, &pb.RpcWalletCreateSessionRequest{
-		Auth: &pb.RpcWalletCreateSessionRequestAuthOfMnemonic{
+		// Recover the wallet.
+		_, err = client.WalletRecover(ctx, &pb.RpcWalletRecoverRequest{
 			Mnemonic: mnemonic,
-		},
+			RootPath: rootPath,
+		})
+		if err != nil {
+			return fmt.Errorf("wallet recovery failed: %w", err)
+		}
+
+		// Create a session.
+		resp, err := client.WalletCreateSession(ctx, &pb.RpcWalletCreateSessionRequest{
+			Auth: &pb.RpcWalletCreateSessionRequestAuthOfMnemonic{
+				Mnemonic: mnemonic,
+			},
+		})
+		if err != nil {
+			return fmt.Errorf("failed to create session: %w", err)
+		}
+		sessionToken = resp.Token
+		return nil
 	})
+
 	if err != nil {
-		return fmt.Errorf("failed to create session: %w", err)
+		return err
 	}
-	sessionToken := resp.Token
 	err = SaveToken(sessionToken)
 	fmt.Println("ℹ Session token:", sessionToken)
 	if err != nil {
@@ -100,11 +100,15 @@ func LoginAccount(mnemonic, rootPath, apiAddr string) error {
 	}
 
 	// Recover the account.
-	ctx, cancel = ClientContextWithAuthTimeout(sessionToken, 5*time.Second)
-	defer cancel()
-	_, err = client.AccountRecover(ctx, &pb.RpcAccountRecoverRequest{})
+	err = GRPCCall(func(ctx context.Context, client service.ClientCommandsClient) error {
+		_, err := client.AccountRecover(ctx, &pb.RpcAccountRecoverRequest{})
+		if err != nil {
+			return fmt.Errorf("account recovery failed: %w", err)
+		}
+		return nil
+	})
 	if err != nil {
-		return fmt.Errorf("account recovery failed: %w", err)
+		return err
 	}
 
 	// Wait for the account ID.
@@ -115,19 +119,20 @@ func LoginAccount(mnemonic, rootPath, apiAddr string) error {
 	fmt.Println("ℹ Account ID:", accountID)
 
 	// Select the account.
-	ctx2, cancel2 := ClientContextWithAuthTimeout(sessionToken, 5*time.Second)
-	defer cancel2()
-	_, err = client.AccountSelect(ctx2, &pb.RpcAccountSelectRequest{
-		DisableLocalNetworkSync: false,
-		Id:                      accountID,
-		JsonApiListenAddr:       apiAddr,
-		RootPath:                rootPath,
+	err = GRPCCall(func(ctx context.Context, client service.ClientCommandsClient) error {
+		_, err := client.AccountSelect(ctx, &pb.RpcAccountSelectRequest{
+			DisableLocalNetworkSync: false,
+			Id:                      accountID,
+			JsonApiListenAddr:       apiAddr,
+			RootPath:                rootPath,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to select account: %w", err)
+		}
+		return nil
 	})
-	if err != nil {
-		return fmt.Errorf("failed to select account: %w", err)
-	}
 
-	return nil
+	return err
 }
 
 func Login(mnemonic, rootPath, apiAddr string) error {
@@ -167,35 +172,36 @@ func Login(mnemonic, rootPath, apiAddr string) error {
 }
 
 func Logout() error {
-	client, err := GetGRPCClient()
-	if err != nil {
-		fmt.Println("Failed to connect to gRPC server:", err)
-	}
-
+	// Need to get token for WalletCloseSession request parameter
 	token, err := GetStoredToken()
 	if err != nil {
 		return fmt.Errorf("failed to get stored token: %w", err)
 	}
 
-	ctx, cancel := ClientContextWithAuthTimeout(token, 5*time.Second)
-	defer cancel()
+	err = GRPCCall(func(ctx context.Context, client service.ClientCommandsClient) error {
+		resp, err := client.AccountStop(ctx, &pb.RpcAccountStopRequest{
+			RemoveData: false,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to log out: %w", err)
+		}
+		if resp.Error.Code != pb.RpcAccountStopResponseError_NULL {
+			fmt.Println("Failed to log out:", resp.Error.Description)
+		}
 
-	resp, err := client.AccountStop(ctx, &pb.RpcAccountStopRequest{
-		RemoveData: false,
+		resp2, err := client.WalletCloseSession(ctx, &pb.RpcWalletCloseSessionRequest{Token: token})
+		if err != nil {
+			return fmt.Errorf("failed to close session: %w", err)
+		}
+		if resp2.Error.Code != pb.RpcWalletCloseSessionResponseError_NULL {
+			fmt.Println("Failed to close session:", resp2.Error.Description)
+		}
+
+		return nil
 	})
-	if err != nil {
-		return fmt.Errorf("failed to log out: %w", err)
-	}
-	if resp.Error.Code != pb.RpcAccountStopResponseError_NULL {
-		fmt.Println("Failed to log out:", resp.Error.Description)
-	}
 
-	resp2, err := client.WalletCloseSession(ctx, &pb.RpcWalletCloseSessionRequest{Token: token})
 	if err != nil {
-		return fmt.Errorf("failed to close session: %w", err)
-	}
-	if resp2.Error.Code != pb.RpcWalletCloseSessionResponseError_NULL {
-		fmt.Println("Failed to close session:", resp2.Error.Description)
+		return err
 	}
 
 	if err := DeleteStoredMnemonic(); err != nil {

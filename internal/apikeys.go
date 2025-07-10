@@ -1,96 +1,74 @@
 package internal
 
 import (
+	"context"
 	"fmt"
 	"github.com/anyproto/anytype-heart/pkg/lib/pb/model"
-	"time"
 
 	"github.com/anyproto/anytype-heart/pb"
+	"github.com/anyproto/anytype-heart/pb/service"
 )
 
 // CreateAPIKey creates a new API key for local app access
 func CreateAPIKey(name string) (*pb.RpcAccountLocalLinkCreateAppResponse, error) {
-	client, err := GetGRPCClient()
-	if err != nil {
-		return nil, fmt.Errorf("error connecting to gRPC server: %w", err)
-	}
+	var resp *pb.RpcAccountLocalLinkCreateAppResponse
 
-	token, err := GetStoredToken()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get stored token: %w", err)
-	}
+	err := GRPCCall(func(ctx context.Context, client service.ClientCommandsClient) error {
+		var err error
+		resp, err = client.AccountLocalLinkCreateApp(ctx, &pb.RpcAccountLocalLinkCreateAppRequest{
+			App: &model.AccountAuthAppInfo{
+				AppName: name,
+			},
+		})
+		if err != nil {
+			return fmt.Errorf("failed to create API key: %w", err)
+		}
 
-	ctx, cancel := ClientContextWithAuthTimeout(token, 5*time.Second)
-	defer cancel()
+		if resp.Error != nil && resp.Error.Code != pb.RpcAccountLocalLinkCreateAppResponseError_NULL {
+			return fmt.Errorf("API error: %s", resp.Error.Description)
+		}
 
-	resp, err := client.AccountLocalLinkCreateApp(ctx, &pb.RpcAccountLocalLinkCreateAppRequest{
-		App: &model.AccountAuthAppInfo{
-			AppName: name,
-		},
+		return nil
 	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to create API key: %w", err)
-	}
 
-	if resp.Error != nil && resp.Error.Code != pb.RpcAccountLocalLinkCreateAppResponseError_NULL {
-		return nil, fmt.Errorf("API error: %s", resp.Error.Description)
-	}
-
-	return resp, nil
+	return resp, err
 }
 
 // ListAPIKeys lists all API keys
 func ListAPIKeys() (*pb.RpcAccountLocalLinkListAppsResponse, error) {
-	client, err := GetGRPCClient()
-	if err != nil {
-		return nil, fmt.Errorf("error connecting to gRPC server: %w", err)
-	}
+	var resp *pb.RpcAccountLocalLinkListAppsResponse
 
-	token, err := GetStoredToken()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get stored token: %w", err)
-	}
+	err := GRPCCall(func(ctx context.Context, client service.ClientCommandsClient) error {
+		var err error
+		resp, err = client.AccountLocalLinkListApps(ctx, &pb.RpcAccountLocalLinkListAppsRequest{})
+		if err != nil {
+			return fmt.Errorf("failed to list API keys: %w", err)
+		}
 
-	ctx, cancel := ClientContextWithAuthTimeout(token, 5*time.Second)
-	defer cancel()
+		if resp.Error != nil && resp.Error.Code != pb.RpcAccountLocalLinkListAppsResponseError_NULL {
+			return fmt.Errorf("API error: %s", resp.Error.Description)
+		}
 
-	resp, err := client.AccountLocalLinkListApps(ctx, &pb.RpcAccountLocalLinkListAppsRequest{})
-	if err != nil {
-		return nil, fmt.Errorf("failed to list API keys: %w", err)
-	}
+		return nil
+	})
 
-	if resp.Error != nil && resp.Error.Code != pb.RpcAccountLocalLinkListAppsResponseError_NULL {
-		return nil, fmt.Errorf("API error: %s", resp.Error.Description)
-	}
-
-	return resp, nil
+	return resp, err
 }
 
 // RevokeAPIKey revokes an API key by appId
 func RevokeAPIKey(appId string) error {
-	client, err := GetGRPCClient()
-	if err != nil {
-		return fmt.Errorf("error connecting to gRPC server: %w", err)
-	}
+	return GRPCCall(func(ctx context.Context, client service.ClientCommandsClient) error {
+		resp, err := client.AccountLocalLinkRevokeApp(ctx, &pb.RpcAccountLocalLinkRevokeAppRequest{
+			AppHash: appId,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to revoke API key: %w", err)
+		}
 
-	token, err := GetStoredToken()
-	if err != nil {
-		return fmt.Errorf("failed to get stored token: %w", err)
-	}
+		if resp.Error != nil && resp.Error.Code != pb.RpcAccountLocalLinkRevokeAppResponseError_NULL {
+			return fmt.Errorf("API error: %s", resp.Error.Description)
+		}
 
-	ctx, cancel := ClientContextWithAuthTimeout(token, 5*time.Second)
-	defer cancel()
-
-	resp, err := client.AccountLocalLinkRevokeApp(ctx, &pb.RpcAccountLocalLinkRevokeAppRequest{
-		AppHash: appId,
+		return nil
 	})
-	if err != nil {
-		return fmt.Errorf("failed to revoke API key: %w", err)
-	}
-
-	if resp.Error != nil && resp.Error.Code != pb.RpcAccountLocalLinkRevokeAppResponseError_NULL {
-		return fmt.Errorf("API error: %s", resp.Error.Description)
-	}
-
-	return nil
 }
