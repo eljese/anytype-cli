@@ -25,7 +25,6 @@ func NewCreateCmd() *cobra.Command {
 			fmt.Println("✓ API key created successfully")
 			fmt.Println("ℹ Name:", name)
 			fmt.Println("ℹ Key:", resp.AppKey)
-			fmt.Println("\nKeep this key secure. You won't be able to see it again.")
 
 			return nil
 		},

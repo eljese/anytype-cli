@@ -22,6 +22,7 @@ func NewRevokeCmd() *cobra.Command {
 				return fmt.Errorf("✗ Failed to revoke API key: %w", err)
 			}
 
+			fmt.Printf("✓ API key with ID '%s' revoked successfully\n", appId)
 			return nil
 		},
 	}
