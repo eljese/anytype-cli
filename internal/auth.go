@@ -100,7 +100,8 @@ func LoginAccount(mnemonic, rootPath, apiAddr string) error {
 	}
 
 	// Recover the account.
-	ctx = ClientContextWithAuth(sessionToken)
+	ctx, cancel = ClientContextWithAuthTimeout(sessionToken, 5*time.Second)
+	defer cancel()
 	_, err = client.AccountRecover(ctx, &pb.RpcAccountRecoverRequest{})
 	if err != nil {
 		return fmt.Errorf("account recovery failed: %w", err)
@@ -114,7 +115,9 @@ func LoginAccount(mnemonic, rootPath, apiAddr string) error {
 	fmt.Println("ℹ Account ID:", accountID)
 
 	// Select the account.
-	_, err = client.AccountSelect(ctx, &pb.RpcAccountSelectRequest{
+	ctx2, cancel2 := ClientContextWithAuthTimeout(sessionToken, 5*time.Second)
+	defer cancel2()
+	_, err = client.AccountSelect(ctx2, &pb.RpcAccountSelectRequest{
 		DisableLocalNetworkSync: false,
 		Id:                      accountID,
 		JsonApiListenAddr:       apiAddr,
@@ -174,7 +177,9 @@ func Logout() error {
 		return fmt.Errorf("failed to get stored token: %w", err)
 	}
 
-	ctx := ClientContextWithAuth(token)
+	ctx, cancel := ClientContextWithAuthTimeout(token, 5*time.Second)
+	defer cancel()
+
 	resp, err := client.AccountStop(ctx, &pb.RpcAccountStopRequest{
 		RemoveData: false,
 	})

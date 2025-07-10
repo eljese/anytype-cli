@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	"google.golang.org/grpc/metadata"
 
@@ -55,7 +56,10 @@ func IsGRPCServerRunning() (bool, error) {
 		return false, err
 	}
 
-	_, err = client.AppGetVersion(context.Background(), &pb.RpcAppGetVersionRequest{})
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	_, err = client.AppGetVersion(ctx, &pb.RpcAppGetVersionRequest{})
 	if err != nil {
 		if strings.Contains(err.Error(), "connection refused") {
 			return false, nil
@@ -68,4 +72,10 @@ func IsGRPCServerRunning() (bool, error) {
 
 func ClientContextWithAuth(token string) context.Context {
 	return metadata.NewOutgoingContext(context.Background(), metadata.Pairs("token", token))
+}
+
+// ClientContextWithAuthTimeout creates a context with both authentication and timeout
+func ClientContextWithAuthTimeout(token string, timeout time.Duration) (context.Context, context.CancelFunc) {
+	ctx := ClientContextWithAuth(token)
+	return context.WithTimeout(ctx, timeout)
 }

@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"context"
 	"fmt"
 	"github.com/anyproto/anytype-heart/pkg/lib/pb/model"
 	"time"
@@ -21,8 +20,7 @@ func CreateAPIKey(name string) (*pb.RpcAccountLocalLinkCreateAppResponse, error)
 		return nil, fmt.Errorf("failed to get stored token: %w", err)
 	}
 
-	ctx := ClientContextWithAuth(token)
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	ctx, cancel := ClientContextWithAuthTimeout(token, 5*time.Second)
 	defer cancel()
 
 	resp, err := client.AccountLocalLinkCreateApp(ctx, &pb.RpcAccountLocalLinkCreateAppRequest{
@@ -53,8 +51,7 @@ func ListAPIKeys() (*pb.RpcAccountLocalLinkListAppsResponse, error) {
 		return nil, fmt.Errorf("failed to get stored token: %w", err)
 	}
 
-	ctx := ClientContextWithAuth(token)
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	ctx, cancel := ClientContextWithAuthTimeout(token, 5*time.Second)
 	defer cancel()
 
 	resp, err := client.AccountLocalLinkListApps(ctx, &pb.RpcAccountLocalLinkListAppsRequest{})
@@ -81,8 +78,7 @@ func RevokeAPIKey(appId string) error {
 		return fmt.Errorf("failed to get stored token: %w", err)
 	}
 
-	ctx := ClientContextWithAuth(token)
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	ctx, cancel := ClientContextWithAuthTimeout(token, 5*time.Second)
 	defer cancel()
 
 	resp, err := client.AccountLocalLinkRevokeApp(ctx, &pb.RpcAccountLocalLinkRevokeAppRequest{
