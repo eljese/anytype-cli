@@ -29,29 +29,23 @@ func NewCreateCmd() *cobra.Command {
 				return fmt.Errorf("failed to create account: %w", err)
 			}
 
-			// Success message first
 			fmt.Println("✓ Account created successfully!")
 
-			// Important warning
 			fmt.Println("\n⚠️ IMPORTANT: Save your mnemonic phrase in a secure location.")
 			fmt.Println("   This is the ONLY way to recover your account if you lose access.")
 
-			// Print mnemonic in a box
 			words := strings.Split(mnemonic, " ")
 			fmt.Println("\n╔════════════════════════════════════════════════════════╗")
 			fmt.Println("║                    MNEMONIC PHRASE                     ║")
 			fmt.Println("╠════════════════════════════════════════════════════════╣")
-			// Print 6 words per line
 			fmt.Printf("║  %-52s  ║\n", strings.Join(words[0:6], " "))
 			fmt.Printf("║  %-52s  ║\n", strings.Join(words[6:12], " "))
 			fmt.Println("╚════════════════════════════════════════════════════════╝")
 
-			// Account details
 			fmt.Println("\n📋 Account Details:")
 			fmt.Printf("   Name: %s\n", name)
 			fmt.Printf("   ID: %s\n", accountID)
 
-			// Final status
 			fmt.Println("\n✓ You are now logged in to your new account.")
 			fmt.Println("✓ Mnemonic saved to keychain.")
 

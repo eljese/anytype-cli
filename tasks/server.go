@@ -27,13 +27,11 @@ func ServerTask(ctx context.Context) error {
 		return fmt.Errorf("failed to start server: %w", err)
 	}
 
-	// Run a goroutine to wait for the process to exit.
 	done := make(chan error, 1)
 	go func() {
 		done <- cmd.Wait()
 	}()
 
-	// Wait until either the task context is canceled or the process exits.
 	select {
 	case <-ctx.Done():
 		syscall.Kill(-cmd.Process.Pid, syscall.SIGTERM)

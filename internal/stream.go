@@ -48,7 +48,6 @@ func startListeningForEvents(token string) (*EventReceiver, error) {
 	authCtx := ClientContextWithAuth(token)
 	ctx, cancel := context.WithCancel(authCtx)
 
-	// Use the authenticated context directly for the stream
 	stream, err := client.ListenSessionEvents(ctx, &pb.StreamRequest{
 		Token: token,
 	})
@@ -86,7 +85,6 @@ func (er *EventReceiver) receiveLoop(ctx context.Context) {
 			return
 		}
 
-		// Add all messages to the queue
 		for _, msg := range event.Messages {
 			if err := er.queue.Add(ctx, msg); err != nil {
 				if ctx.Err() != nil {

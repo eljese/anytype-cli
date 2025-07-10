@@ -152,7 +152,6 @@ func (m *Manager) handleStatusTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Expect a query parameter like ?task=server or ?task=autoapprove-<spaceID>
 	taskID := r.URL.Query().Get("task")
 	if taskID == "" {
 		http.Error(w, "missing task parameter", http.StatusBadRequest)
@@ -183,7 +182,6 @@ func StartManager(addr string) error {
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 
-	// Try to start the server
 	errChan := make(chan error, 1)
 	done := make(chan struct{})
 
@@ -194,7 +192,6 @@ func StartManager(addr string) error {
 		close(done)
 	}()
 
-	// Check if server started successfully
 	select {
 	case err := <-errChan:
 		return fmt.Errorf("failed to start daemon: %w", err)
@@ -202,7 +199,6 @@ func StartManager(addr string) error {
 		// Server started successfully
 	}
 
-	// Set up channel on which to send signal notifications.
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit,
 		syscall.SIGINT,  // Ctrl+C
@@ -212,15 +208,12 @@ func StartManager(addr string) error {
 		syscall.SIGABRT, // abort() called
 	)
 
-	// Block until we receive our signal.
 	sig := <-quit
 	fmt.Printf("Daemon received signal %v, shutting down...\n", sig)
 
-	// First, tell the task manager to stop all tasks.
 	GetTaskManager().StopAll()
 	fmt.Println("All managed tasks have been stopped.")
 
-	// Create a deadline to wait for.
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {

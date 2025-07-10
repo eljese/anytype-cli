@@ -75,7 +75,6 @@ func (tm *TaskManager) StopTask(id string) error {
 // StopAll stops every running task and waits for them to complete.
 func (tm *TaskManager) StopAll() {
 	tm.mu.Lock()
-	// First, cancel all tasks
 	var waitList []*taskInfo
 	for _, task := range tm.tasks {
 		task.cancel()
@@ -83,7 +82,6 @@ func (tm *TaskManager) StopAll() {
 	}
 	tm.mu.Unlock()
 
-	// Wait for all tasks to complete
 	for _, task := range waitList {
 		<-task.done
 	}
