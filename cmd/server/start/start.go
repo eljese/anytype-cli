@@ -34,7 +34,7 @@ func NewStartCmd() *cobra.Command {
 					fmt.Println("✓ Successfully logged in using keychain mnemonic.")
 				}
 			} else {
-				fmt.Println("ℹ No keychain mnemonic found. Please login using 'anytype login'.")
+				fmt.Println("ℹ No keychain mnemonic found. Please login using 'anytype auth login' or create a new account with 'anytype auth create'.")
 			}
 			return nil
 		},

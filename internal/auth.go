@@ -50,9 +50,7 @@ func LoginAccount(mnemonic, rootPath, apiAddr string) error {
 
 	var sessionToken string
 
-	// Initial unauthenticated calls
 	err := GRPCCallNoAuth(func(ctx context.Context, client service.ClientCommandsClient) error {
-		// Set initial parameters.
 		_, err := client.InitialSetParameters(ctx, &pb.RpcInitialSetParametersRequest{
 			Platform: runtime.GOOS,
 			Version:  Version,
@@ -121,10 +119,9 @@ func LoginAccount(mnemonic, rootPath, apiAddr string) error {
 	// Select the account.
 	err = GRPCCall(func(ctx context.Context, client service.ClientCommandsClient) error {
 		_, err := client.AccountSelect(ctx, &pb.RpcAccountSelectRequest{
-			DisableLocalNetworkSync: false,
-			Id:                      accountID,
-			JsonApiListenAddr:       apiAddr,
-			RootPath:                rootPath,
+			Id:                accountID,
+			JsonApiListenAddr: apiAddr,
+			RootPath:          rootPath,
 		})
 		if err != nil {
 			return fmt.Errorf("failed to select account: %w", err)
@@ -216,4 +213,102 @@ func Logout() error {
 	CloseEventReceiver()
 
 	return nil
+}
+
+// CreateWallet creates a new wallet with the given root path and returns the mnemonic and account ID
+func CreateWallet(name, rootPath, apiAddr string) (string, string, error) {
+	if rootPath == "" {
+		rootPath = getDefaultDataPath()
+	}
+	if apiAddr == "" {
+		apiAddr = "127.0.0.1:31009"
+	}
+
+	var mnemonic string
+	var sessionToken string
+
+	err := GRPCCallNoAuth(func(ctx context.Context, client service.ClientCommandsClient) error {
+		_, err := client.InitialSetParameters(ctx, &pb.RpcInitialSetParametersRequest{
+			Platform: runtime.GOOS,
+			Version:  Version,
+			Workdir:  getDefaultWorkDir(),
+		})
+		if err != nil {
+			return fmt.Errorf("failed to set initial parameters: %w", err)
+		}
+
+		// Create a new wallet
+		createResp, err := client.WalletCreate(ctx, &pb.RpcWalletCreateRequest{
+			RootPath: rootPath,
+		})
+		if err != nil {
+			return fmt.Errorf("wallet creation failed: %w", err)
+		}
+		mnemonic = createResp.Mnemonic
+
+		// Create a session with the new mnemonic
+		sessionResp, err := client.WalletCreateSession(ctx, &pb.RpcWalletCreateSessionRequest{
+			Auth: &pb.RpcWalletCreateSessionRequestAuthOfMnemonic{
+				Mnemonic: mnemonic,
+			},
+		})
+		if err != nil {
+			return fmt.Errorf("failed to create session: %w", err)
+		}
+		sessionToken = sessionResp.Token
+		return nil
+	})
+
+	if err != nil {
+		return "", "", err
+	}
+
+	err = SaveToken(sessionToken)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to save session token: %w", err)
+	}
+
+	// Start listening for session events.
+	_, err = ListenForEvents(sessionToken)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to start event listener: %w", err)
+	}
+
+	// Create the account
+	var accountID string
+	err = GRPCCall(func(ctx context.Context, client service.ClientCommandsClient) error {
+		resp, err := client.AccountCreate(ctx, &pb.RpcAccountCreateRequest{
+			Name:              name,
+			StorePath:         rootPath,
+			JsonApiListenAddr: apiAddr,
+		})
+		if err != nil {
+			return fmt.Errorf("account creation failed: %w", err)
+		}
+		accountID = resp.Account.Id
+		return nil
+	})
+	if err != nil {
+		return "", "", err
+	}
+
+	// Select the account.
+	err = GRPCCall(func(ctx context.Context, client service.ClientCommandsClient) error {
+		_, err := client.AccountSelect(ctx, &pb.RpcAccountSelectRequest{
+			Id:                accountID,
+			JsonApiListenAddr: apiAddr,
+			RootPath:          rootPath,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to select account: %w", err)
+		}
+		return nil
+	})
+	if err != nil {
+		return "", "", err
+	}
+
+	_ = SaveMnemonic(mnemonic)
+
+	return mnemonic, accountID, nil
 }
