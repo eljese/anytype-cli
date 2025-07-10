@@ -23,7 +23,7 @@ download-server:
 
 build:
 	@echo "Building Anytype CLI..."
-	@GOOS=$(GOOS) GOARCH=$(GOARCH) go build -ldflags "$(LDFLAGS)" -o $(OUTPUT)
+	@CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(GOARCH) go build -ldflags "$(LDFLAGS)" -o $(OUTPUT)
 	@echo "Built successfully: $(OUTPUT)"
 
 install: build
