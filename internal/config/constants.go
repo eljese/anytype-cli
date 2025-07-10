@@ -2,7 +2,7 @@ package config
 
 const (
 	// Default addresses
-	DefaultBindAddress = "127.0.0.1"
+	DefaultBindAddress = "0.0.0.0"
 
 	// Port configuration
 	GRPCPort    = "31007"

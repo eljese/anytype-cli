@@ -38,7 +38,7 @@ func runShell(rootCmd *cobra.Command) error {
 		}
 
 		if line == "" {
-			continue // ignore empty input
+			continue
 		}
 
 		args := strings.Split(line, " ")
