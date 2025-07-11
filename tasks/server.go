@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"syscall"
 
 	"github.com/anyproto/anytype-cli/core/config"
 )
@@ -21,7 +20,7 @@ func ServerTask(ctx context.Context) error {
 		config.EnvGRPCAddr+"="+config.DefaultBindAddress+":"+grpcPort,
 		config.EnvGRPCWebAddr+"="+config.DefaultBindAddress+":"+grpcWebPort,
 	)
-	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	setPlatformSpecificAttrs(cmd)
 
 	if err := cmd.Start(); err != nil {
 		return fmt.Errorf("failed to start server: %w", err)
@@ -34,7 +33,9 @@ func ServerTask(ctx context.Context) error {
 
 	select {
 	case <-ctx.Done():
-		syscall.Kill(-cmd.Process.Pid, syscall.SIGTERM)
+		if err := terminateProcess(cmd.Process.Pid); err != nil {
+			return fmt.Errorf("failed to terminate process: %w", err)
+		}
 		return <-done
 	case err := <-done:
 		return err
