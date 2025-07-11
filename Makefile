@@ -29,27 +29,27 @@ build:
 install: build
 	@echo "Installing Anytype CLI..."
 	@cp dist/anytype /usr/local/bin/anytype 2>/dev/null || sudo cp dist/anytype /usr/local/bin/anytype
-	@echo "Installed to /usr/local/bin/anytype"
+	@cp dist/grpc-server /usr/local/bin/anytype-grpc-server 2>/dev/null || sudo cp dist/grpc-server /usr/local/bin/anytype-grpc-server
+	@echo "Installed to /usr/local/bin/"
 
 uninstall:
 	@echo "Uninstalling Anytype CLI..."
 	@rm -f /usr/local/bin/anytype 2>/dev/null || sudo rm -f /usr/local/bin/anytype
-	@echo "Uninstalled from /usr/local/bin/anytype"
+	@rm -f /usr/local/bin/anytype-grpc-server 2>/dev/null || sudo rm -f /usr/local/bin/anytype-grpc-server
+	@echo "Uninstalled from /usr/local/bin/"
 
 install-local: build
 	@mkdir -p $$HOME/.local/bin
 	@cp dist/anytype $$HOME/.local/bin/anytype
-	@echo "Installed to $$HOME/.local/bin/anytype"
+	@cp dist/grpc-server $$HOME/.local/bin/anytype-grpc-server
+	@echo "Installed to $$HOME/.local/bin/"
 	@echo "Make sure $$HOME/.local/bin is in your PATH"
 
 uninstall-local:
 	@echo "Uninstalling Anytype CLI from local..."
 	@rm -f $$HOME/.local/bin/anytype
-	@echo "Uninstalled from $$HOME/.local/bin/anytype"
-
-update:
-	@echo "Updating Anytype CLI..."
-	# TODO: implement fetching the latest version from GitHub
+	@rm -f $$HOME/.local/bin/anytype-grpc-server
+	@echo "Uninstalled from $$HOME/.local/bin/"
 
 install-linter:
 	@echo "Installing golangci-lint..."
