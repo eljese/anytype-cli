@@ -28,4 +28,6 @@ const (
 	// Environment variable names
 	EnvGRPCAddr    = "ANYTYPE_GRPC_ADDR"
 	EnvGRPCWebAddr = "ANYTYPE_GRPCWEB_ADDR"
+
+	AnytypeNetworkAddress = "N83gJpVd9MuNRZAuJLZ7LiMntTThhPc6DtzWWVjb1M3PouVU"
 )

@@ -43,10 +43,10 @@ func init() {
 
 	rootCmd.AddCommand(
 		auth.NewAuthCmd(),
+		daemon.NewDaemonCmd(),
 		server.NewServerCmd(),
 		shell.NewShellCmd(rootCmd),
 		space.NewSpaceCmd(),
-		daemon.NewDaemonCmd(),
 		update.NewUpdateCmd(),
 		version.NewVersionCmd(),
 	)
