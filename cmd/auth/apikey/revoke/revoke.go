@@ -5,7 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/anyproto/anytype-cli/internal"
+	"github.com/anyproto/anytype-cli/core"
 )
 
 func NewRevokeCmd() *cobra.Command {
@@ -17,7 +17,7 @@ func NewRevokeCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			appId := args[0]
 
-			err := internal.RevokeAPIKey(appId)
+			err := core.RevokeAPIKey(appId)
 			if err != nil {
 				return fmt.Errorf("✗ Failed to revoke API key: %w", err)
 			}

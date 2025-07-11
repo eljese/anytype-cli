@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/anyproto/anytype-cli/internal/config"
+	"github.com/anyproto/anytype-cli/core/config"
 )
 
 const (

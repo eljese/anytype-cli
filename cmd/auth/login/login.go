@@ -5,9 +5,9 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/anyproto/anytype-cli/core"
+	"github.com/anyproto/anytype-cli/core/config"
 	"github.com/anyproto/anytype-cli/daemon"
-	"github.com/anyproto/anytype-cli/internal"
-	"github.com/anyproto/anytype-cli/internal/config"
 )
 
 func NewLoginCmd() *cobra.Command {
@@ -24,7 +24,7 @@ func NewLoginCmd() *cobra.Command {
 				return fmt.Errorf("server is not running")
 			}
 
-			if err := internal.Login(mnemonic, rootPath, apiAddr); err != nil {
+			if err := core.Login(mnemonic, rootPath, apiAddr); err != nil {
 				return fmt.Errorf("✗ Failed to log in: %w", err)
 			}
 			fmt.Println("✓ Successfully logged in")

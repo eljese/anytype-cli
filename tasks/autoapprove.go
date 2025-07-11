@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/anyproto/anytype-cli/internal"
+	"github.com/anyproto/anytype-cli/core"
 	"github.com/anyproto/anytype-heart/pkg/lib/pb/model"
 )
 
@@ -20,12 +20,12 @@ func AutoapproveTask(ctx context.Context, spaceID, role string) error {
 		permissions = model.ParticipantPermissions_Reader
 	}
 
-	token, err := internal.GetStoredToken()
+	token, err := core.GetStoredToken()
 	if err != nil || token == "" {
 		return fmt.Errorf("failed to get stored token; are you logged in?")
 	}
 
-	er, err := internal.ListenForEvents(token)
+	er, err := core.ListenForEvents(token)
 	if err != nil || er == nil {
 		return fmt.Errorf("failed to start event listener: %w", err)
 	}
@@ -37,7 +37,7 @@ func AutoapproveTask(ctx context.Context, spaceID, role string) error {
 			case <-ctx.Done():
 				return
 			case <-time.After(5 * time.Second):
-				status, err := internal.IsGRPCServerRunning()
+				status, err := core.IsGRPCServerRunning()
 				if err != nil || !status {
 					return
 				}
@@ -51,12 +51,12 @@ func AutoapproveTask(ctx context.Context, spaceID, role string) error {
 		case <-ctx.Done():
 			return nil
 		default:
-			joinReq, err := internal.WaitForJoinRequestEvent(er, spaceID)
+			joinReq, err := core.WaitForJoinRequestEvent(er, spaceID)
 			if err != nil {
 				time.Sleep(time.Second)
 				continue
 			}
-			if err := internal.ApproveJoinRequest(joinReq.SpaceId, joinReq.Identity, permissions); err != nil {
+			if err := core.ApproveJoinRequest(joinReq.SpaceId, joinReq.Identity, permissions); err != nil {
 				fmt.Printf("Failed to approve join request: %v\n", err)
 			} else {
 				fmt.Printf("Successfully approved join request for identity %s\n", joinReq.Identity)

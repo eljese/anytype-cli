@@ -2,13 +2,13 @@ package main
 
 import (
 	"github.com/anyproto/anytype-cli/cmd"
-	"github.com/anyproto/anytype-cli/internal"
+	"github.com/anyproto/anytype-cli/core"
 )
 
 func main() {
 	defer func() {
-		internal.CloseEventReceiver()
-		internal.CloseGRPCConnection()
+		core.CloseEventReceiver()
+		core.CloseGRPCConnection()
 	}()
 	cmd.Execute()
 }

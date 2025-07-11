@@ -6,9 +6,9 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/anyproto/anytype-cli/core"
+	"github.com/anyproto/anytype-cli/core/config"
 	"github.com/anyproto/anytype-cli/daemon"
-	"github.com/anyproto/anytype-cli/internal"
-	"github.com/anyproto/anytype-cli/internal/config"
 )
 
 func NewStartCmd() *cobra.Command {
@@ -32,10 +32,10 @@ func NewStartCmd() *cobra.Command {
 			fmt.Printf("✓ Server started successfully via daemon. Response: %s, API Address: %s\n", resp.Status, displayAddr)
 			time.Sleep(2 * time.Second)
 
-			mnemonic, err := internal.GetStoredMnemonic()
+			mnemonic, err := core.GetStoredMnemonic()
 			if err == nil && mnemonic != "" {
 				fmt.Println("ℹ Keychain mnemonic found. Attempting to login...")
-				if err := internal.LoginAccount(mnemonic, rootPath, apiAddr); err != nil {
+				if err := core.LoginAccount(mnemonic, rootPath, apiAddr); err != nil {
 					fmt.Println("✗ Failed to login using keychain mnemonic:", err)
 				} else {
 					fmt.Println("✓ Successfully logged in using keychain mnemonic.")

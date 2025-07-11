@@ -9,7 +9,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/anyproto/anytype-cli/internal"
+	"github.com/anyproto/anytype-cli/core"
 )
 
 func NewListCmd() *cobra.Command {
@@ -18,7 +18,7 @@ func NewListCmd() *cobra.Command {
 		Short: "List all API keys",
 		Long:  "List all API keys associated with your account",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			resp, err := internal.ListAPIKeys()
+			resp, err := core.ListAPIKeys()
 			if err != nil {
 				return fmt.Errorf("✗ Failed to list API keys: %w", err)
 			}

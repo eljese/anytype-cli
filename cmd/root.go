@@ -12,7 +12,7 @@ import (
 	"github.com/anyproto/anytype-cli/cmd/shell"
 	"github.com/anyproto/anytype-cli/cmd/space"
 	"github.com/anyproto/anytype-cli/cmd/version"
-	"github.com/anyproto/anytype-cli/internal"
+	"github.com/anyproto/anytype-cli/core"
 )
 
 var (
@@ -51,5 +51,5 @@ func init() {
 }
 
 func printVersion() {
-	fmt.Println(internal.GetVersionBrief())
+	fmt.Println(core.GetVersionBrief())
 }

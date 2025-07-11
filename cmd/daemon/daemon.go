@@ -5,8 +5,8 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/anyproto/anytype-cli/core/config"
 	"github.com/anyproto/anytype-cli/daemon"
-	"github.com/anyproto/anytype-cli/internal/config"
 )
 
 func NewDaemonCmd() *cobra.Command {

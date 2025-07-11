@@ -1,4 +1,4 @@
-package internal
+package core
 
 import (
 	"bufio"
@@ -11,7 +11,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/anyproto/anytype-cli/internal/config"
+	"github.com/anyproto/anytype-cli/core/config"
 )
 
 // getDefaultDataPath returns the default data path for Anytype based on the operating system

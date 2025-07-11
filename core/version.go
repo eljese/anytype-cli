@@ -1,10 +1,10 @@
-package internal
+package core
 
 import (
 	"fmt"
 	"runtime"
 
-	"github.com/anyproto/anytype-cli/internal/config"
+	"github.com/anyproto/anytype-cli/core/config"
 )
 
 // Set via ldflags during build

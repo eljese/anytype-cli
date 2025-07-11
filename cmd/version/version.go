@@ -5,7 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/anyproto/anytype-cli/internal"
+	"github.com/anyproto/anytype-cli/core"
 )
 
 func NewVersionCmd() *cobra.Command {
@@ -16,9 +16,9 @@ func NewVersionCmd() *cobra.Command {
 		Short: "Show version information",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if verbose {
-				fmt.Println(internal.GetVersionVerbose())
+				fmt.Println(core.GetVersionVerbose())
 			} else {
-				fmt.Println(internal.GetVersionBrief())
+				fmt.Println(core.GetVersionBrief())
 			}
 			return nil
 		},

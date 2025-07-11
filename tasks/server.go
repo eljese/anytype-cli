@@ -7,7 +7,7 @@ import (
 	"os/exec"
 	"syscall"
 
-	"github.com/anyproto/anytype-cli/internal/config"
+	"github.com/anyproto/anytype-cli/core/config"
 )
 
 // ServerTask is a background task that starts the server process.

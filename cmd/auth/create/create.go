@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/anyproto/anytype-cli/internal"
-	"github.com/anyproto/anytype-cli/internal/config"
+	"github.com/anyproto/anytype-cli/core"
+	"github.com/anyproto/anytype-cli/core/config"
 	"github.com/spf13/cobra"
 )
 
@@ -24,7 +24,7 @@ func NewCreateCmd() *cobra.Command {
 				return fmt.Errorf("account name is required")
 			}
 
-			mnemonic, accountID, err := internal.CreateWallet(name, rootPath, apiAddr)
+			mnemonic, accountID, err := core.CreateWallet(name, rootPath, apiAddr)
 			if err != nil {
 				return fmt.Errorf("failed to create account: %w", err)
 			}

@@ -5,7 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/anyproto/anytype-cli/internal"
+	"github.com/anyproto/anytype-cli/core"
 )
 
 func NewCreateCmd() *cobra.Command {
@@ -17,7 +17,7 @@ func NewCreateCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			name := args[0]
 
-			resp, err := internal.CreateAPIKey(name)
+			resp, err := core.CreateAPIKey(name)
 			if err != nil {
 				return fmt.Errorf("✗ Failed to create API key: %w", err)
 			}
