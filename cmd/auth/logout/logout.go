@@ -9,7 +9,7 @@ import (
 )
 
 func NewLogoutCmd() *cobra.Command {
-	logoutCmd := &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "logout",
 		Short: "Log out and remove stored credentials from keychain",
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -21,5 +21,5 @@ func NewLogoutCmd() *cobra.Command {
 		},
 	}
 
-	return logoutCmd
+	return cmd
 }

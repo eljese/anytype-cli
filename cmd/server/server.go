@@ -9,14 +9,14 @@ import (
 )
 
 func NewServerCmd() *cobra.Command {
-	serverCmd := &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "server <command>",
 		Short: "Manage the Anytype local server",
 	}
 
-	serverCmd.AddCommand(serverStartCmd.NewStartCmd())
-	serverCmd.AddCommand(serverStopCmd.NewStopCmd())
-	serverCmd.AddCommand(serverStatusCmd.NewStatusCmd())
+	cmd.AddCommand(serverStartCmd.NewStartCmd())
+	cmd.AddCommand(serverStopCmd.NewStopCmd())
+	cmd.AddCommand(serverStatusCmd.NewStatusCmd())
 
-	return serverCmd
+	return cmd
 }

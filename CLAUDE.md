@@ -111,9 +111,51 @@ go build -ldflags "-X main.Version=$(git describe --tags --always) -X main.Commi
 
 ### Adding a New Command
 1. Create a new directory under `/cmd/` for your command group
-2. Create a `cmd.go` file with the Cobra command definition
-3. Register the command in `/cmd/root.go`
-4. Implement core logic in `/core/` if needed
+2. Create a file named after the command (e.g., `config.go` for config command) with a `NewXxxCmd()` function that returns `*cobra.Command`
+3. Create subdirectories for each subcommand with their own files
+4. Import subcommands with aliases matching the directory name
+5. Register the command in `/cmd/root.go` using `NewXxxCmd()`
+6. Implement core logic in `/core/` if needed
+
+Directory structure follows the subcommand pattern:
+```
+cmd/
+├── config/
+│   ├── config.go      # Main command file (not cmd.go)
+│   ├── get/
+│   │   └── get.go     # Subcommand with NewGetCmd()
+│   ├── set/
+│   │   └── set.go     # Subcommand with NewSetCmd()
+│   └── reset/
+│       └── reset.go   # Subcommand with NewResetCmd()
+```
+
+Example main command file:
+```go
+// cmd/config/config.go
+package config
+
+import (
+    "github.com/spf13/cobra"
+    
+    configGetCmd "github.com/anyproto/anytype-cli/cmd/config/get"
+    configSetCmd "github.com/anyproto/anytype-cli/cmd/config/set"
+    configResetCmd "github.com/anyproto/anytype-cli/cmd/config/reset"
+)
+
+func NewConfigCmd() *cobra.Command {
+    cmd := &cobra.Command{
+        Use:   "config <command>",
+        Short: "Manage configuration",
+    }
+    
+    cmd.AddCommand(configGetCmd.NewGetCmd())
+    cmd.AddCommand(configSetCmd.NewSetCmd())
+    cmd.AddCommand(configResetCmd.NewResetCmd())
+    
+    return cmd
+}
+```
 
 ### Working with the Daemon
 - Daemon tasks go in `/tasks/`

@@ -9,7 +9,7 @@ import (
 )
 
 func NewStopCmd() *cobra.Command {
-	stopCmd := &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "stop",
 		Short: "Stop the Anytype local server",
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -22,5 +22,5 @@ func NewStopCmd() *cobra.Command {
 		},
 	}
 
-	return stopCmd
+	return cmd
 }

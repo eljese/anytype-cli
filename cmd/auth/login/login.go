@@ -11,7 +11,7 @@ import (
 )
 
 func NewLoginCmd() *cobra.Command {
-	loginCmd := &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "login",
 		Short: "Log in to your Anytype vault",
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -33,9 +33,9 @@ func NewLoginCmd() *cobra.Command {
 		},
 	}
 
-	loginCmd.Flags().String("mnemonic", "", "Provide mnemonic (12 words) for authentication")
-	loginCmd.Flags().String("path", "", "Provide custom root path for wallet recovery")
-	loginCmd.Flags().String("api-addr", "", fmt.Sprintf("API listen address (default: %s)", config.DefaultAPIAddress))
+	cmd.Flags().String("mnemonic", "", "Provide mnemonic (12 words) for authentication")
+	cmd.Flags().String("path", "", "Provide custom root path for wallet recovery")
+	cmd.Flags().String("api-addr", "", fmt.Sprintf("API listen address (default: %s)", config.DefaultAPIAddress))
 
-	return loginCmd
+	return cmd
 }

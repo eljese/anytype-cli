@@ -12,7 +12,7 @@ import (
 func NewDaemonCmd() *cobra.Command {
 	var addr string
 
-	daemonCmd := &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "daemon",
 		Short: "Run the Anytype background daemon",
 		Long:  "Run the Anytype daemon that manages background tasks (should be run as a system service).",
@@ -26,6 +26,6 @@ func NewDaemonCmd() *cobra.Command {
 		},
 	}
 
-	daemonCmd.Flags().StringVar(&addr, "addr", config.DefaultDaemonAddress, "Address for the daemon to listen on")
-	return daemonCmd
+	cmd.Flags().StringVar(&addr, "addr", config.DefaultDaemonAddress, "Address for the daemon to listen on")
+	return cmd
 }

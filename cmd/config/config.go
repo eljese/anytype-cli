@@ -9,15 +9,15 @@ import (
 )
 
 func NewConfigCmd() *cobra.Command {
-	configCmd := &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "config <command>",
 		Short: "Manage configuration",
 		Long:  `Manage Anytype CLI configuration settings`,
 	}
 
-	configCmd.AddCommand(configGetCmd.NewGetCmd())
-	configCmd.AddCommand(configSetCmd.NewSetCmd())
-	configCmd.AddCommand(configResetCmd.NewResetCmd())
+	cmd.AddCommand(configGetCmd.NewGetCmd())
+	cmd.AddCommand(configSetCmd.NewSetCmd())
+	cmd.AddCommand(configResetCmd.NewResetCmd())
 
-	return configCmd
+	return cmd
 }

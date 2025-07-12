@@ -14,9 +14,6 @@ func NewApiKeyCmd() *cobra.Command {
 		Use:   "apikey <command>",
 		Short: "Manage API keys",
 		Long:  "Create, list, and revoke API keys for programmatic access",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return cmd.Help()
-		},
 	}
 
 	// Add subcommands

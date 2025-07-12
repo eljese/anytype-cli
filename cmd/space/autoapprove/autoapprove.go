@@ -12,7 +12,7 @@ func NewAutoapproveCmd() *cobra.Command {
 	var spaceID string
 	var role string
 
-	autoapproveCmd := &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "autoapprove",
 		Short: "Start autoapproval of join requests for a space (runs in background)",
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -36,8 +36,8 @@ func NewAutoapproveCmd() *cobra.Command {
 		},
 	}
 
-	autoapproveCmd.Flags().StringVar(&spaceID, "space", "", "ID of the space to monitor")
-	autoapproveCmd.Flags().StringVar(&role, "role", "", "Role to assign to approved join requests (e.g., Editor, Viewer)")
+	cmd.Flags().StringVar(&spaceID, "space", "", "ID of the space to monitor")
+	cmd.Flags().StringVar(&role, "role", "", "Role to assign to approved join requests (e.g., Editor, Viewer)")
 
-	return autoapproveCmd
+	return cmd
 }

@@ -9,7 +9,7 @@ import (
 )
 
 func NewStatusCmd() *cobra.Command {
-	statusCmd := &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "status",
 		Short: "Get the status of the Anytype local server",
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -21,5 +21,5 @@ func NewStatusCmd() *cobra.Command {
 			return nil
 		},
 	}
-	return statusCmd
+	return cmd
 }

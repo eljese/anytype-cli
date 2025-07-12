@@ -10,15 +10,15 @@ import (
 )
 
 func NewAuthCmd() *cobra.Command {
-	authCmd := &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "auth <command>",
 		Short: "Authenticate with Anytype",
 	}
 
-	authCmd.AddCommand(authLoginCmd.NewLoginCmd())
-	authCmd.AddCommand(authLogoutCmd.NewLogoutCmd())
-	authCmd.AddCommand(authCreateCmd.NewCreateCmd())
-	authCmd.AddCommand(authApiKeyCmd.NewApiKeyCmd())
+	cmd.AddCommand(authLoginCmd.NewLoginCmd())
+	cmd.AddCommand(authLogoutCmd.NewLogoutCmd())
+	cmd.AddCommand(authCreateCmd.NewCreateCmd())
+	cmd.AddCommand(authApiKeyCmd.NewApiKeyCmd())
 
-	return authCmd
+	return cmd
 }

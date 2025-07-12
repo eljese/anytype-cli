@@ -10,15 +10,15 @@ import (
 )
 
 func NewSpaceCmd() *cobra.Command {
-	spaceCmd := &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "space <command>",
 		Short: "Manage spaces",
 	}
 
-	spaceCmd.AddCommand(spaceAutoapproveCmd.NewAutoapproveCmd())
-	spaceCmd.AddCommand(spaceJoinCmd.NewJoinCmd())
-	spaceCmd.AddCommand(spaceLeaveCmd.NewLeaveCmd())
-	spaceCmd.AddCommand(spaceListCmd.NewListCmd())
+	cmd.AddCommand(spaceAutoapproveCmd.NewAutoapproveCmd())
+	cmd.AddCommand(spaceJoinCmd.NewJoinCmd())
+	cmd.AddCommand(spaceLeaveCmd.NewLeaveCmd())
+	cmd.AddCommand(spaceListCmd.NewListCmd())
 
-	return spaceCmd
+	return cmd
 }

@@ -12,7 +12,7 @@ import (
 )
 
 func NewStartCmd() *cobra.Command {
-	startCmd := &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "start",
 		Short: "Start the Anytype local server",
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -47,8 +47,8 @@ func NewStartCmd() *cobra.Command {
 		},
 	}
 
-	startCmd.Flags().String("path", "", "Custom root path for wallet recovery")
-	startCmd.Flags().String("api-addr", "", fmt.Sprintf("API listen address (default: %s)", config.DefaultAPIAddress))
+	cmd.Flags().String("path", "", "Custom root path for wallet recovery")
+	cmd.Flags().String("api-addr", "", fmt.Sprintf("API listen address (default: %s)", config.DefaultAPIAddress))
 
-	return startCmd
+	return cmd
 }
