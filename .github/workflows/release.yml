@@ -51,11 +51,11 @@ jobs:
           cd dist
           tar czf "../anytype-cli-${{ steps.buildvars.outputs.version }}-darwin-amd64.tar.gz" anytype-darwin-amd64
           tar czf "../anytype-cli-${{ steps.buildvars.outputs.version }}-darwin-arm64.tar.gz" anytype-darwin-arm64
-          7z a "../anytype-cli-${{ steps.buildvars.outputs.version }}-windows-amd64.zip" anytype-windows-amd64.exe
+          zip "../anytype-cli-${{ steps.buildvars.outputs.version }}-windows-amd64.zip" anytype-windows-amd64.exe
           tar czf "../anytype-cli-${{ steps.buildvars.outputs.version }}-linux-amd64.tar.gz" anytype-linux-amd64
           tar czf "../anytype-cli-${{ steps.buildvars.outputs.version }}-linux-arm64.tar.gz" anytype-linux-arm64
           cd ..
-          ls -la *.{tar.gz,zip}
+          ls -la anytype-cli-*
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
