@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/anyproto/any-sync/app"
+	"github.com/anyproto/anytype-heart/core/api"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
@@ -138,6 +139,8 @@ func (s *Server) Start(grpcAddr, grpcWebAddr string) error {
 			log.Errorf("gRPC-Web server error: %v", err)
 		}
 	}()
+
+	api.SetMiddlewareParams(s.mw)
 
 	// Give servers a moment to start
 	time.Sleep(100 * time.Millisecond)
