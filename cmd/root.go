@@ -58,4 +58,6 @@ func init() {
 		update.NewUpdateCmd(),
 		version.NewVersionCmd(),
 	)
+
+	rootCmd.CompletionOptions.HiddenDefaultCmd = true
 }
