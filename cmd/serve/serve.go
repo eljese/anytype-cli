@@ -11,10 +11,11 @@ import (
 
 func NewServeCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "serve",
-		Short: "Run the Anytype server",
-		Long:  "Run the Anytype server. When running as a system service, it will be managed by the service manager. When running interactively, use Ctrl+C to stop.",
-		RunE:  runServer,
+		Use:     "serve",
+		Aliases: []string{"start"},
+		Short:   "Run the Anytype server",
+		Long:    "Run the Anytype server. When running as a system service, it will be managed by the service manager. When running interactively, use Ctrl+C to stop.",
+		RunE:    runServer,
 	}
 
 	return cmd
