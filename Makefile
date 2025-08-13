@@ -30,6 +30,36 @@ build: download-tantivy ## Build the CLI binary
 	@CGO_ENABLED=1 CGO_LDFLAGS="$(CGO_LDFLAGS)" GOOS=$(GOOS) GOARCH=$(GOARCH) go build -ldflags "$(LDFLAGS)" -o $(OUTPUT)
 	@echo "Built successfully: $(OUTPUT)"
 
+cross-compile: ## Build for all platforms in parallel
+	@echo "Cross-compiling for all platforms..."
+	@$(MAKE) -j \
+		build-darwin-amd64 \
+		build-darwin-arm64 \
+		build-windows-amd64 \
+		build-linux-amd64 \
+		build-linux-arm64
+	@echo "All platforms built successfully!"
+
+build-darwin-amd64:
+	@$(MAKE) clean-tantivy
+	@GOOS=darwin GOARCH=amd64 OUTPUT=dist/anytype-darwin-amd64 $(MAKE) build
+
+build-darwin-arm64:
+	@$(MAKE) clean-tantivy
+	@GOOS=darwin GOARCH=arm64 OUTPUT=dist/anytype-darwin-arm64 $(MAKE) build
+
+build-windows-amd64:
+	@$(MAKE) clean-tantivy
+	@GOOS=windows GOARCH=amd64 CC=x86_64-w64-mingw32-gcc OUTPUT=dist/anytype-windows-amd64.exe $(MAKE) build
+
+build-linux-amd64:
+	@$(MAKE) clean-tantivy
+	@GOOS=linux GOARCH=amd64 CC=x86_64-linux-musl-gcc OUTPUT=dist/anytype-linux-amd64 $(MAKE) build
+
+build-linux-arm64:
+	@$(MAKE) clean-tantivy
+	@GOOS=linux GOARCH=arm64 CC=aarch64-linux-musl-gcc OUTPUT=dist/anytype-linux-arm64 $(MAKE) build
+
 download-tantivy: ## Download tantivy library for current platform
 	@if [ ! -f "$(TANTIVY_LIB_PATH)/libtantivy_go.a" ]; then \
 		echo "Downloading tantivy library $(TANTIVY_VERSION) for $(GOOS)/$(GOARCH)..."; \
