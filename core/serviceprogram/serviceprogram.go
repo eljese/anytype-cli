@@ -14,15 +14,19 @@ import (
 )
 
 type Program struct {
-	logger service.Logger
-	server *grpcserver.Server
-	ctx    context.Context
-	cancel context.CancelFunc
-	wg     sync.WaitGroup
+	logger   service.Logger
+	server   *grpcserver.Server
+	ctx      context.Context
+	cancel   context.CancelFunc
+	wg       sync.WaitGroup
+	startErr error
+	startCh  chan struct{}
 }
 
 func New() *Program {
-	return &Program{}
+	return &Program{
+		startCh: make(chan struct{}),
+	}
 }
 
 func (p *Program) SetLogger(logger service.Logger) {
@@ -35,6 +39,20 @@ func (p *Program) Start(s service.Service) error {
 
 	p.wg.Add(1)
 	go p.run()
+
+	// Wait for server to start or fail
+	select {
+	case <-p.startCh:
+		if p.startErr != nil {
+			p.cancel()
+			p.wg.Wait()
+			return p.startErr
+		}
+	case <-time.After(5 * time.Second):
+		p.cancel()
+		p.wg.Wait()
+		return fmt.Errorf("timeout waiting for server to start")
+	}
 
 	return nil
 }
@@ -58,23 +76,25 @@ func (p *Program) Stop(s service.Service) error {
 
 func (p *Program) run() {
 	defer p.wg.Done()
+	defer close(p.startCh)
 
 	grpcAddr := config.DefaultBindAddress + ":" + config.GRPCPort
 	grpcWebAddr := config.DefaultBindAddress + ":" + config.GRPCWebPort
 
 	// Start the server
 	if err := p.server.Start(grpcAddr, grpcWebAddr); err != nil {
-		fmt.Printf("Failed to start server: %v\n", err)
+		p.startErr = err
 		return
 	}
+
+	// Signal successful start
+	p.startCh <- struct{}{}
 
 	// Wait a moment for server to be ready
 	time.Sleep(2 * time.Second)
 
-	// Attempt auto-login
 	go p.attemptAutoLogin()
 
-	// Wait for context cancellation
 	<-p.ctx.Done()
 }
 
