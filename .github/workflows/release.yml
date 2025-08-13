@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   build-all-platforms:
-    runs-on: mac-mini-org
+    runs-on: mac-mini-org-heart
     
     outputs:
       version: ${{ steps.buildvars.outputs.version }}
