@@ -2,7 +2,6 @@ package status
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/anyproto/anytype-heart/pb"
 	"github.com/anyproto/anytype-heart/pb/service"
@@ -10,6 +9,7 @@ import (
 
 	"github.com/anyproto/anytype-cli/core"
 	"github.com/anyproto/anytype-cli/core/config"
+	"github.com/anyproto/anytype-cli/core/output"
 )
 
 func NewStatusCmd() *cobra.Command {
@@ -49,42 +49,42 @@ func NewStatusCmd() *cobra.Command {
 
 			// Display status based on priority: server -> credentials -> login
 			if !serverRunning {
-				fmt.Println("Server is not running. Run 'anytype serve' to start the server.")
+				output.Print("Server is not running. Run 'anytype serve' to start the server.")
 				if hasMnemonic || hasToken || accountID != "" {
-					fmt.Println("Credentials are stored in keychain.")
+					output.Print("Credentials are stored in keychain.")
 				}
 				return nil
 			}
 
 			if !hasMnemonic && !hasToken && accountID == "" {
-				fmt.Println("Not authenticated. Run 'anytype auth login' to authenticate.")
+				output.Print("Not authenticated. Run 'anytype auth login' to authenticate.")
 				return nil
 			}
 
-			fmt.Println("Anytype")
+			output.Print("Anytype")
 
 			if isLoggedIn && accountID != "" {
-				fmt.Printf("  ✓ Logged in to account %s (keychain)\n", accountID)
+				output.Print("  ✓ Logged in to account %s (keychain)", accountID)
 			} else if hasToken || hasMnemonic {
-				fmt.Println("  ✗ Not logged in (credentials stored in keychain)")
+				output.Print("  ✗ Not logged in (credentials stored in keychain)")
 				if !isLoggedIn && hasToken {
-					fmt.Println("    Note: Server is not running or session expired. Run 'anytype serve' to start server.")
+					output.Print("    Note: Server is not running or session expired. Run 'anytype serve' to start server.")
 				}
 			} else {
-				fmt.Println("  ✗ Not logged in")
+				output.Print("  ✗ Not logged in")
 			}
 
-			fmt.Printf("  - Active session: %v\n", isLoggedIn)
+			output.Print("  - Active session: %v", isLoggedIn)
 
 			if hasMnemonic {
-				fmt.Println("  - Mnemonic: stored")
+				output.Print("  - Mnemonic: stored")
 			}
 
 			if hasToken {
 				if len(token) > 8 {
-					fmt.Printf("  - Token: %s****\n", token[:8])
+					output.Print("  - Token: %s****", token[:8])
 				} else {
-					fmt.Println("  - Token: stored")
+					output.Print("  - Token: stored")
 				}
 			}
 

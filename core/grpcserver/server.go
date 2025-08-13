@@ -46,7 +46,7 @@ func (s *Server) Start(grpcAddr, grpcWebAddr string) error {
 
 	// Set up logging to stdout
 	if os.Getenv("ANYTYPE_LOG_LEVEL") == "" {
-		os.Setenv("ANYTYPE_LOG_LEVEL", "info")
+		os.Setenv("ANYTYPE_LOG_LEVEL", "ERROR")
 	}
 
 	// Initialize metrics

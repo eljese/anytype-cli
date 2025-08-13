@@ -7,6 +7,7 @@ import (
 
 	"github.com/anyproto/anytype-cli/core"
 	"github.com/anyproto/anytype-cli/core/config"
+	"github.com/anyproto/anytype-cli/core/output"
 )
 
 func NewLoginCmd() *cobra.Command {
@@ -19,9 +20,9 @@ func NewLoginCmd() *cobra.Command {
 			apiAddr, _ := cmd.Flags().GetString("api-addr")
 
 			if err := core.Login(mnemonic, rootPath, apiAddr); err != nil {
-				return fmt.Errorf("✗ Failed to log in: %w", err)
+				return output.Error("failed to log in: %w", err)
 			}
-			fmt.Println("✓ Successfully logged in")
+			output.Success("Successfully logged in")
 			return nil
 
 		},

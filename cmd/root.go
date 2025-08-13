@@ -15,6 +15,7 @@ import (
 	"github.com/anyproto/anytype-cli/cmd/update"
 	"github.com/anyproto/anytype-cli/cmd/version"
 	"github.com/anyproto/anytype-cli/core"
+	"github.com/anyproto/anytype-cli/core/output"
 )
 
 var (
@@ -34,13 +35,18 @@ var (
 )
 
 func Execute() {
+	rootCmd.SilenceErrors = true
+	rootCmd.SilenceUsage = true
+
 	if err := rootCmd.Execute(); err != nil {
+		fmt.Fprintf(os.Stderr, "✗ %v\n", err)
 		os.Exit(1)
 	}
 }
 
 func init() {
 	rootCmd.Flags().BoolVarP(&versionFlag, "version", "v", false, "Show version information")
+	rootCmd.Flags().BoolP("help", "h", false, "Show help for command")
 
 	rootCmd.AddCommand(
 		auth.NewAuthCmd(),
@@ -55,5 +61,5 @@ func init() {
 }
 
 func printVersion() {
-	fmt.Println(core.GetVersionBrief())
+	output.Print(core.GetVersionBrief())
 }

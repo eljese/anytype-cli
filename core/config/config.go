@@ -40,7 +40,7 @@ func getConfigFilePath() string {
 		return ""
 	}
 
-	configDir := filepath.Join(home, ".config", "anytype")
+	configDir := filepath.Join(home, ".anytype")
 	return filepath.Join(configDir, "config.json")
 }
 

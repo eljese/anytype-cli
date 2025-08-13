@@ -1,24 +1,36 @@
 package service
 
 import (
-	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/kardianos/service"
 	"github.com/spf13/cobra"
 
+	"github.com/anyproto/anytype-cli/core/output"
 	"github.com/anyproto/anytype-cli/core/serviceprogram"
 )
 
 // getService creates a service instance with our standard configuration
 func getService() (service.Service, error) {
+	options := service.KeyValue{
+		"UserService": true,
+	}
+
+	homeDir := os.Getenv("HOME")
+	if homeDir != "" {
+		logDir := filepath.Join(homeDir, ".anytype", "logs")
+		if err := os.MkdirAll(logDir, 0755); err == nil {
+			options["LogDirectory"] = logDir
+		}
+	}
+
 	svcConfig := &service.Config{
 		Name:        "anytype",
 		DisplayName: "Anytype Server",
 		Description: "Anytype personal knowledge management server",
 		Arguments:   []string{"serve"},
-		Option: service.KeyValue{
-			"UserService": true,
-		},
+		Option:      options,
 	}
 
 	prg := serviceprogram.New()
@@ -71,20 +83,20 @@ func NewServiceCmd() *cobra.Command {
 func installService(cmd *cobra.Command, args []string) error {
 	s, err := getService()
 	if err != nil {
-		return fmt.Errorf("failed to create service: %w", err)
+		return output.Error("failed to create service: %w", err)
 	}
 
 	err = s.Install()
 	if err != nil {
-		return fmt.Errorf("failed to install service: %w", err)
+		return output.Error("failed to install service: %w", err)
 	}
 
-	fmt.Println("✓ Anytype service installed successfully")
-	fmt.Println("\nTo manage the service:")
-	fmt.Println("  Start:   anytype service start")
-	fmt.Println("  Stop:    anytype service stop")
-	fmt.Println("  Restart: anytype service restart")
-	fmt.Println("  Status:  anytype service status")
+	output.Success("Anytype service installed successfully")
+	output.Print("\nTo manage the service:")
+	output.Print("  Start:   anytype service start")
+	output.Print("  Stop:    anytype service stop")
+	output.Print("  Restart: anytype service restart")
+	output.Print("  Status:  anytype service status")
 
 	return nil
 }
@@ -92,87 +104,87 @@ func installService(cmd *cobra.Command, args []string) error {
 func uninstallService(cmd *cobra.Command, args []string) error {
 	s, err := getService()
 	if err != nil {
-		return fmt.Errorf("failed to create service: %w", err)
+		return output.Error("failed to create service: %w", err)
 	}
 
 	err = s.Uninstall()
 	if err != nil {
-		return fmt.Errorf("failed to uninstall service: %w", err)
+		return output.Error("failed to uninstall service: %w", err)
 	}
 
-	fmt.Println("✓ Anytype service uninstalled successfully")
+	output.Success("Anytype service uninstalled successfully")
 	return nil
 }
 
 func startService(cmd *cobra.Command, args []string) error {
 	s, err := getService()
 	if err != nil {
-		return fmt.Errorf("failed to create service: %w", err)
+		return output.Error("failed to create service: %w", err)
 	}
 
 	err = s.Start()
 	if err != nil {
-		return fmt.Errorf("failed to start service: %w", err)
+		return output.Error("failed to start service: %w", err)
 	}
 
-	fmt.Println("✓ Anytype service started")
+	output.Success("Anytype service started")
 	return nil
 }
 
 func stopService(cmd *cobra.Command, args []string) error {
 	s, err := getService()
 	if err != nil {
-		return fmt.Errorf("failed to create service: %w", err)
+		return output.Error("failed to create service: %w", err)
 	}
 
 	err = s.Stop()
 	if err != nil {
-		return fmt.Errorf("failed to stop service: %w", err)
+		return output.Error("failed to stop service: %w", err)
 	}
 
-	fmt.Println("✓ Anytype service stopped")
+	output.Success("Anytype service stopped")
 	return nil
 }
 
 func restartService(cmd *cobra.Command, args []string) error {
 	s, err := getService()
 	if err != nil {
-		return fmt.Errorf("failed to create service: %w", err)
+		return output.Error("failed to create service: %w", err)
 	}
 
 	err = s.Restart()
 	if err != nil {
-		return fmt.Errorf("failed to restart service: %w", err)
+		return output.Error("failed to restart service: %w", err)
 	}
 
-	fmt.Println("✓ Anytype service restarted")
+	output.Success("Anytype service restarted")
 	return nil
 }
 
 func statusService(cmd *cobra.Command, args []string) error {
 	s, err := getService()
 	if err != nil {
-		return fmt.Errorf("failed to create service: %w", err)
+		return output.Error("failed to create service: %w", err)
 	}
 
 	status, err := s.Status()
 	if err != nil {
 		if err == service.ErrNotInstalled {
-			fmt.Println("✗ Anytype service is not installed")
-			fmt.Println("  Run 'anytype service install' to install it")
+			output.Info("Anytype service is not installed")
+			output.Info("Run 'anytype service install' to install it")
 			return nil
 		}
-		return fmt.Errorf("failed to get service status: %w", err)
+		return output.Error("failed to get service status: %w", err)
 	}
 
 	switch status {
 	case service.StatusRunning:
-		fmt.Println("✓ Anytype service is running")
+		output.Success("Anytype service is running")
 	case service.StatusStopped:
-		fmt.Println("✗ Anytype service is stopped")
-		fmt.Println("  Run 'anytype service start' to start it")
+		output.Info("Anytype service is stopped")
+		output.Info("Run 'anytype service start' to start it")
 	default:
-		fmt.Printf("? Anytype service status: %v\n", status)
+		output.Info("Anytype service status: %v", status)
 	}
 
 	return nil

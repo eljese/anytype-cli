@@ -1,11 +1,10 @@
 package logout
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 
 	"github.com/anyproto/anytype-cli/core"
+	"github.com/anyproto/anytype-cli/core/output"
 )
 
 func NewLogoutCmd() *cobra.Command {
@@ -14,9 +13,9 @@ func NewLogoutCmd() *cobra.Command {
 		Short: "Log out and remove stored credentials from keychain",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := core.Logout(); err != nil {
-				return fmt.Errorf("✗ Failed to log out: %w", err)
+				return output.Error("failed to log out: %w", err)
 			}
-			fmt.Println("✓ Successfully logged out. Stored credentials removed.")
+			output.Success("Successfully logged out. Stored credentials removed.")
 			return nil
 		},
 	}

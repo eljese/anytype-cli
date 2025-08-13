@@ -11,10 +11,10 @@ import (
 	"github.com/anyproto/anytype-cli/core"
 	"github.com/anyproto/anytype-cli/core/config"
 	"github.com/anyproto/anytype-cli/core/grpcserver"
+	"github.com/anyproto/anytype-cli/core/output"
 )
 
 type Program struct {
-	logger   service.Logger
 	server   *grpcserver.Server
 	ctx      context.Context
 	cancel   context.CancelFunc
@@ -27,10 +27,6 @@ func New() *Program {
 	return &Program{
 		startCh: make(chan struct{}),
 	}
-}
-
-func (p *Program) SetLogger(logger service.Logger) {
-	p.logger = logger
 }
 
 func (p *Program) Start(s service.Service) error {
@@ -64,9 +60,7 @@ func (p *Program) Stop(s service.Service) error {
 
 	if p.server != nil {
 		if err := p.server.Stop(); err != nil {
-			if p.logger != nil {
-				p.logger.Errorf("Error stopping server: %v", err)
-			}
+			output.Info("Error stopping server: %v", err)
 		}
 	}
 
@@ -101,15 +95,11 @@ func (p *Program) run() {
 func (p *Program) attemptAutoLogin() {
 	mnemonic, err := core.GetStoredMnemonic()
 	if err != nil || mnemonic == "" {
-		if p.logger != nil {
-			p.logger.Info("No stored mnemonic found, skipping auto-login")
-		}
+		output.Info("No stored mnemonic found, skipping auto-login")
 		return
 	}
 
-	if p.logger != nil {
-		p.logger.Info("Found stored mnemonic, attempting auto-login...")
-	}
+	output.Info("Found stored mnemonic, attempting auto-login...")
 
 	maxRetries := 5
 	for i := 0; i < maxRetries; i++ {
@@ -118,13 +108,9 @@ func (p *Program) attemptAutoLogin() {
 				time.Sleep(2 * time.Second)
 				continue
 			}
-			if p.logger != nil {
-				p.logger.Errorf("Failed to auto-login after %d attempts: %v", maxRetries, err)
-			}
+			output.Info("Failed to auto-login after %d attempts: %v", maxRetries, err)
 		} else {
-			if p.logger != nil {
-				p.logger.Info("Successfully logged in using stored mnemonic")
-			}
+			output.Success("Successfully logged in using stored mnemonic")
 			break
 		}
 	}

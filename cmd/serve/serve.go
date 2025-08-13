@@ -1,11 +1,10 @@
 package serve
 
 import (
-	"fmt"
-
 	"github.com/kardianos/service"
 	"github.com/spf13/cobra"
 
+	"github.com/anyproto/anytype-cli/core/output"
 	"github.com/anyproto/anytype-cli/core/serviceprogram"
 )
 
@@ -32,12 +31,12 @@ func runServer(cmd *cobra.Command, args []string) error {
 
 	s, err := service.New(prg, svcConfig)
 	if err != nil {
-		return fmt.Errorf("failed to create service: %w", err)
+		return output.Error("failed to create service: %w", err)
 	}
 
 	err = s.Run()
 	if err != nil {
-		return fmt.Errorf("service failed: %w", err)
+		return output.Error("service failed: %w", err)
 	}
 
 	return nil
