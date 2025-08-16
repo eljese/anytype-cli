@@ -79,7 +79,7 @@ func getLatestVersion() (string, error) {
 		TagName string `json:"tag_name"`
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&release); err != nil {
-		return "", fmt.Errorf("failed to parse release: %w", err)
+		return "", output.Error("failed to parse release: %w", err)
 	}
 
 	return release.TagName, nil
@@ -88,7 +88,7 @@ func getLatestVersion() (string, error) {
 func downloadAndInstall(version string) error {
 	tempDir, err := os.MkdirTemp("", "anytype-update-*")
 	if err != nil {
-		return fmt.Errorf("failed to create temp dir: %w", err)
+		return output.Error("failed to create temp dir: %w", err)
 	}
 	defer os.RemoveAll(tempDir)
 
@@ -98,7 +98,7 @@ func downloadAndInstall(version string) error {
 	}
 
 	if err := extractArchive(archivePath, tempDir); err != nil {
-		return fmt.Errorf("failed to extract: %w", err)
+		return output.Error("failed to extract: %w", err)
 	}
 
 	binaryName := "anytype"
@@ -108,11 +108,11 @@ func downloadAndInstall(version string) error {
 
 	newBinary := filepath.Join(tempDir, binaryName)
 	if _, err := os.Stat(newBinary); err != nil {
-		return fmt.Errorf("binary not found in archive (expected %s)", binaryName)
+		return output.Error("binary not found in archive (expected %s)", binaryName)
 	}
 
 	if err := replaceBinary(newBinary); err != nil {
-		return fmt.Errorf("failed to install: %w", err)
+		return output.Error("failed to install: %w", err)
 	}
 
 	return nil
@@ -158,7 +158,7 @@ func downloadViaAPI(version, filename, destination string) error {
 		} `json:"assets"`
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&release); err != nil {
-		return fmt.Errorf("failed to parse release: %w", err)
+		return output.Error("failed to parse release: %w", err)
 	}
 
 	var assetURL string
@@ -169,7 +169,7 @@ func downloadViaAPI(version, filename, destination string) error {
 		}
 	}
 	if assetURL == "" {
-		return fmt.Errorf("release asset %s not found", filename)
+		return output.Error("release asset %s not found", filename)
 	}
 
 	return downloadFile(assetURL, destination, os.Getenv("GITHUB_TOKEN"))
@@ -193,7 +193,7 @@ func downloadFile(url, destination, token string) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("download failed with status %d", resp.StatusCode)
+		return output.Error("download failed with status %d", resp.StatusCode)
 	}
 
 	out, err := os.Create(destination)
@@ -320,10 +320,10 @@ func replaceBinary(newBinary string) error {
 			cmd.Stdout = os.Stdout
 			cmd.Stderr = os.Stderr
 			if err := cmd.Run(); err != nil {
-				return fmt.Errorf("failed to replace binary: %w", err)
+				return output.Error("failed to replace binary: %w", err)
 			}
 		} else {
-			return fmt.Errorf("failed to replace binary: %w", err)
+			return output.Error("failed to replace binary: %w", err)
 		}
 	}
 
@@ -348,5 +348,5 @@ func githubAPI(method, endpoint string, body io.Reader) (*http.Response, error) 
 
 func handleAPIError(resp *http.Response) error {
 	body, _ := io.ReadAll(resp.Body)
-	return fmt.Errorf("API error %d: %s", resp.StatusCode, string(body))
+	return output.Error("API error %d: %s", resp.StatusCode, string(body))
 }
