@@ -30,13 +30,11 @@ func NewStatusCmd() *cobra.Command {
 				token = t
 			}
 
-			// Get account info from config
 			configMgr := config.GetConfigManager()
 			_ = configMgr.Load()
 			cfg := configMgr.Get()
 			accountID := cfg.AccountID
 
-			// First check if server is running
 			serverRunning := false
 			err := core.GRPCCallNoAuth(func(ctx context.Context, client service.ClientCommandsClient) error {
 				_, err := client.AppGetVersion(ctx, &pb.RpcAppGetVersionRequest{})
@@ -62,10 +60,10 @@ func NewStatusCmd() *cobra.Command {
 				return nil
 			}
 
-			output.Print("Anytype")
+			output.Print("\033[1manytype\033[0m")
 
 			if isLoggedIn && accountID != "" {
-				output.Print("  ✓ Logged in to account %s (keychain)", accountID)
+				output.Print("  ✓ Logged in to account \033[1m%s\033[0m (keychain)", accountID)
 			} else if hasToken || hasMnemonic {
 				output.Print("  ✗ Not logged in (credentials stored in keychain)")
 				if !isLoggedIn && hasToken {
@@ -75,17 +73,17 @@ func NewStatusCmd() *cobra.Command {
 				output.Print("  ✗ Not logged in")
 			}
 
-			output.Print("  - Active session: %v", isLoggedIn)
+			output.Print("  - Active session: \033[1m%v\033[0m", isLoggedIn)
 
 			if hasMnemonic {
-				output.Print("  - Mnemonic: stored")
+				output.Print("  - Mnemonic: \033[1mstored\033[0m")
 			}
 
 			if hasToken {
 				if len(token) > 8 {
-					output.Print("  - Token: %s****", token[:8])
+					output.Print("  - Token: \033[1m%s****\033[0m", token[:8])
 				} else {
-					output.Print("  - Token: stored")
+					output.Print("  - Token: \033[1mstored\033[0m")
 				}
 			}
 
