@@ -1,8 +1,6 @@
 module github.com/anyproto/anytype-cli
 
-go 1.23.10
-
-toolchain go1.24.0
+go 1.24.6
 
 require (
 	github.com/anyproto/any-sync v0.9.3-0.20250814130126-36509ffa0ca6
