@@ -28,7 +28,9 @@ import (
 	"github.com/anyproto/anytype-heart/util/grpcprocess"
 )
 
-var log = logging.Logger("anytype-embedded-server")
+var log = logging.Logger("anytype-heart")
+
+const grpcWebStartedMessagePrefix = "gRPC Web proxy started at: "
 
 type Server struct {
 	mw           *core.Middleware
@@ -43,24 +45,18 @@ func NewServer() *Server {
 }
 
 func (s *Server) Start(grpcAddr, grpcWebAddr string) error {
-	// Initialize the app start warning
 	app.StartWarningAfter = time.Second * 5
 
-	// Set up logging to stdout
 	if os.Getenv("ANYTYPE_LOG_LEVEL") == "" {
 		os.Setenv("ANYTYPE_LOG_LEVEL", "ERROR")
 	}
 
-	// Initialize metrics
 	metrics.Service.InitWithKeys(metrics.DefaultInHouseKey)
 
-	log.Info("Starting anytype...")
-
-	// Create middleware
+	log.Info("Starting anytype-heart...")
 	s.mw = core.New()
 	s.mw.SetEventSender(event.NewGrpcSender())
 
-	// Create listeners
 	var err error
 	s.grpcListener, err = net.Listen("tcp", grpcAddr)
 	if err != nil {
@@ -73,7 +69,6 @@ func (s *Server) Start(grpcAddr, grpcWebAddr string) error {
 		return fmt.Errorf("failed to listen on %s: %w", grpcWebAddr, err)
 	}
 
-	// Setup interceptors
 	var unaryInterceptors []grpc.UnaryServerInterceptor
 
 	if metrics.Enabled {
@@ -89,30 +84,25 @@ func (s *Server) Start(grpcAddr, grpcWebAddr string) error {
 		return
 	})
 
-	// Add debug timeout interceptor if not disabled
 	if os.Getenv("ANYTYPE_GRPC_NO_DEBUG_TIMEOUT") != "1" {
 		unaryInterceptors = append(unaryInterceptors, metrics.LongMethodsInterceptor)
 	}
 
-	// Add process info interceptor
 	unaryInterceptors = append(unaryInterceptors, grpcprocess.ProcessInfoInterceptor(
 		"/anytype.ClientCommands/AccountLocalLinkNewChallenge",
 	))
 
-	// Create gRPC server
 	s.grpcServer = grpc.NewServer(
 		grpc.MaxRecvMsgSize(20*1024*1024),
 		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(unaryInterceptors...)),
 	)
 
-	// Register service
 	service.RegisterClientCommandsServer(s.grpcServer, s.mw)
 
 	if metrics.Enabled {
 		grpc_prometheus.EnableHandlingTimeHistogram()
 	}
 
-	// Create gRPC-Web proxy
 	webrpc := grpcweb.WrapServer(
 		s.grpcServer,
 		grpcweb.WithOriginFunc(func(origin string) bool { return true }),
@@ -125,7 +115,6 @@ func (s *Server) Start(grpcAddr, grpcWebAddr string) error {
 		ReadHeaderTimeout: 30 * time.Second,
 	}
 
-	// Start servers in goroutines
 	go func() {
 		log.Infof("Starting gRPC server on %s", s.grpcListener.Addr())
 		if err := s.grpcServer.Serve(s.grpcListener); err != nil {
@@ -134,8 +123,7 @@ func (s *Server) Start(grpcAddr, grpcWebAddr string) error {
 	}()
 
 	go func() {
-		// Print the required message for JS client compatibility
-		fmt.Printf("gRPC Web proxy started at: %s\n", s.webListener.Addr())
+		fmt.Printf("%s%s\n", grpcWebStartedMessagePrefix, s.webListener.Addr())
 		if err := s.webServer.Serve(s.webListener); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Errorf("gRPC-Web server error: %v", err)
 		}
@@ -143,21 +131,16 @@ func (s *Server) Start(grpcAddr, grpcWebAddr string) error {
 
 	api.SetMiddlewareParams(s.mw)
 
-	// Give servers a moment to start
-	time.Sleep(100 * time.Millisecond)
-
 	return nil
 }
 
 func (s *Server) Stop() error {
 	log.Info("Shutting down servers...")
 
-	// Gracefully stop gRPC server
 	if s.grpcServer != nil {
 		s.grpcServer.GracefulStop()
 	}
 
-	// Shutdown HTTP server
 	if s.webServer != nil {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
@@ -166,7 +149,6 @@ func (s *Server) Stop() error {
 		}
 	}
 
-	// Stop middleware - using AppShutdown as per anytype-heart implementation
 	if s.mw != nil {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
