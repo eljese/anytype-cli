@@ -1,0 +1,21 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="anytype" type="GoApplicationRunConfiguration" factoryName="Go Application">
+    <module name="anytype-cli" />
+    <working_directory value="$PROJECT_DIR$" />
+    <go_parameters value="-tags &quot;appdebug&quot; -ldflags &quot;-X github.com/anyproto/anytype-cli/core.Version=1.0.0-dev -X github.com/anyproto/anytype-cli/core.Commit=dev -X github.com/anyproto/anytype-cli/core.BuildTime=dev -X github.com/anyproto/anytype-cli/core.GitState=clean&quot;" />
+    <envs>
+      <env name="CGO_ENABLED" value="1" />
+      <env name="CGO_LDFLAGS" value="-L$PROJECT_DIR$/dist/tantivy" />
+      <env name="CC" value="/usr/bin/cc" />
+      <env name="CXX" value="/usr/bin/c++" />
+    </envs>
+    <kind value="PACKAGE" />
+    <package value="github.com/anyproto/anytype-cli" />
+    <directory value="$PROJECT_DIR$" />
+    <filePath value="$PROJECT_DIR$" />
+    <parameters value="auth status" />
+    <output_directory value="$PROJECT_DIR$" />
+    <method v="2">
+    </method>
+  </configuration>
+</component>

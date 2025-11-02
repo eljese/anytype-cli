@@ -1,9 +1,11 @@
 package set
 
 import (
+	"github.com/spf13/cobra"
+
+	"github.com/anyproto/anytype-cli/cmd/cmdutil"
 	"github.com/anyproto/anytype-cli/core/config"
 	"github.com/anyproto/anytype-cli/core/output"
-	"github.com/spf13/cobra"
 )
 
 func NewSetCmd() *cobra.Command {
@@ -11,7 +13,7 @@ func NewSetCmd() *cobra.Command {
 		Use:   "set <key> <value>",
 		Short: "Set a configuration value",
 		Long:  `Set a specific configuration value`,
-		Args:  cobra.ExactArgs(2),
+		Args:  cmdutil.ExactArgs(2, "cannot set config: key and value arguments required"),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			key := args[0]
 			value := args[1]

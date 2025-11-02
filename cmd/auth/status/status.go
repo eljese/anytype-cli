@@ -18,9 +18,11 @@ func NewStatusCmd() *cobra.Command {
 		Short: "Show authentication status",
 		Long:  "Display current authentication status, including account information, server status, and stored credentials.",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			hasMnemonic := false
-			if _, err := core.GetStoredMnemonic(); err == nil {
-				hasMnemonic = true
+			hasAccountKey := false
+			accountKey := ""
+			if ak, err := core.GetStoredAccountKey(); err == nil && ak != "" {
+				hasAccountKey = true
+				accountKey = ak
 			}
 
 			hasToken := false
@@ -35,27 +37,27 @@ func NewStatusCmd() *cobra.Command {
 			cfg := configMgr.Get()
 			accountId := cfg.AccountId
 
-			serverRunning := false
+			isServerRunning := false
 			err := core.GRPCCallNoAuth(func(ctx context.Context, client service.ClientCommandsClient) error {
 				_, err := client.AppGetVersion(ctx, &pb.RpcAppGetVersionRequest{})
 				return err
 			})
-			serverRunning = err == nil
+			isServerRunning = err == nil
 
 			// If server is running and we have a token, we're logged in
-			// (server auto-logs in on restart using stored mnemonic)
-			isLoggedIn := serverRunning && hasToken
+			// (server auto-logs in on restart using stored account key)
+			isLoggedIn := isServerRunning && hasToken
 
 			// Display status based on priority: server -> credentials -> login
-			if !serverRunning {
-				output.Print("Server is not running. Run 'anytype serve' to start the server.")
-				if hasMnemonic || hasToken || accountId != "" {
+			if !isServerRunning {
+				output.Print("Server is not running. Start it with 'anytype service start' or 'anytype serve' (foreground mode).")
+				if hasAccountKey || hasToken || accountId != "" {
 					output.Print("Credentials are stored in keychain.")
 				}
 				return nil
 			}
 
-			if !hasMnemonic && !hasToken && accountId == "" {
+			if !hasAccountKey && !hasToken && accountId == "" {
 				output.Print("Not authenticated. Run 'anytype auth login' to authenticate or 'anytype auth create' to create a new account.")
 				return nil
 			}
@@ -64,10 +66,10 @@ func NewStatusCmd() *cobra.Command {
 
 			if isLoggedIn && accountId != "" {
 				output.Print("  ✓ Logged in to account \033[1m%s\033[0m (keychain)", accountId)
-			} else if hasToken || hasMnemonic {
+			} else if hasToken || hasAccountKey {
 				output.Print("  ✗ Not logged in (credentials stored in keychain)")
 				if !isLoggedIn && hasToken {
-					output.Print("    Note: Server is not running or session expired. Run 'anytype serve' to start server.")
+					output.Print("    Note: Server is not running or session expired. Start it with 'anytype service start' or 'anytype serve' (foreground mode).")
 				}
 			} else {
 				output.Print("  ✗ Not logged in")
@@ -75,15 +77,19 @@ func NewStatusCmd() *cobra.Command {
 
 			output.Print("  - Active session: \033[1m%v\033[0m", isLoggedIn)
 
-			if hasMnemonic {
-				output.Print("  - Mnemonic: \033[1mstored\033[0m")
+			if hasAccountKey {
+				if len(accountKey) > 8 {
+					output.Print("  - Account Key: \033[1m%s****\033[0m", accountKey[:8])
+				} else {
+					output.Print("  - Account Key: \033[1mstored\033[0m")
+				}
 			}
 
 			if hasToken {
 				if len(token) > 8 {
-					output.Print("  - Token: \033[1m%s****\033[0m", token[:8])
+					output.Print("  - Session Token: \033[1m%s****\033[0m", token[:8])
 				} else {
-					output.Print("  - Token: \033[1mstored\033[0m")
+					output.Print("  - Session Token: \033[1mstored\033[0m")
 				}
 			}
 

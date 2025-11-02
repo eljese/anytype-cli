@@ -1,4 +1,4 @@
-.PHONY: all build install install-local uninstall uninstall-local clean clean-tantivy download-tantivy lint lint-fix install-linter
+.PHONY: all build install uninstall clean clean-tantivy download-tantivy lint lint-fix install-linter
 
 all: download-tantivy build
 
@@ -94,18 +94,8 @@ download-tantivy: ## Download tantivy library for current platform
 
 ##@ Installation
 
-install: build ## Install to /usr/local/bin (may require sudo)
+install: build ## Install to ~/.local/bin (user installation)
 	@echo "Installing anytype-cli..."
-	@cp dist/anytype /usr/local/bin/anytype 2>/dev/null || sudo cp dist/anytype /usr/local/bin/anytype
-	@ln -sf /usr/local/bin/anytype /usr/local/bin/any 2>/dev/null || sudo ln -sf /usr/local/bin/anytype /usr/local/bin/any
-	@echo "Installed to /usr/local/bin/ (available as 'anytype' and 'any')"
-	@echo ""
-	@echo "Usage:"
-	@echo "  anytype serve              # Run server in foreground"
-	@echo "  anytype service install    # Install as system service"
-
-install-local: build ## Install to ~/.local/bin (user installation)
-	@echo "Installing anytype-cli to local..."
 	@mkdir -p $$HOME/.local/bin
 	@cp dist/anytype $$HOME/.local/bin/anytype
 	@ln -sf $$HOME/.local/bin/anytype $$HOME/.local/bin/any
@@ -114,16 +104,10 @@ install-local: build ## Install to ~/.local/bin (user installation)
 	@echo ""
 	@echo "Usage:"
 	@echo "  anytype serve              # Run server in foreground"
-	@echo "  anytype service install    # Install as system service"
+	@echo "  anytype service install    # Install as user service"
 
-uninstall: ## Uninstall from /usr/local/bin
+uninstall: ## Uninstall from ~/.local/bin
 	@echo "Uninstalling anytype-cli..."
-	@rm -f /usr/local/bin/anytype 2>/dev/null || sudo rm -f /usr/local/bin/anytype
-	@rm -f /usr/local/bin/any 2>/dev/null || sudo rm -f /usr/local/bin/any
-	@echo "Uninstalled from /usr/local/bin/"
-
-uninstall-local: ## Uninstall from ~/.local/bin
-	@echo "Uninstalling anytype-cli from local..."
 	@rm -f $$HOME/.local/bin/anytype
 	@rm -f $$HOME/.local/bin/any
 	@echo "Uninstalled from $$HOME/.local/bin/"

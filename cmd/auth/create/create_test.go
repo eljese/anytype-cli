@@ -18,8 +18,8 @@ func TestCreateCommand(t *testing.T) {
 	if cmd.Flag("root-path") == nil {
 		t.Error("root-path flag not found")
 	}
-	if cmd.Flag("api-addr") == nil {
-		t.Error("api-addr flag not found")
+	if cmd.Flag("listen-address") == nil {
+		t.Error("listen-address flag not found")
 	}
 }
 

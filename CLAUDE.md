@@ -12,11 +12,11 @@ This is the Anytype CLI, a Go-based command-line interface for interacting with 
 # Build the CLI (includes embedded server, downloads tantivy library automatically)
 make build
 
-# Install system-wide
+# Install to ~/.local/bin (user installation)
 make install
 
-# Install user-local (~/.local/bin)
-make install-local
+# Uninstall from ~/.local/bin
+make uninstall
 
 # Clean tantivy libraries
 make clean-tantivy
@@ -51,8 +51,8 @@ make build-windows-amd64
    ```bash
    # Run server interactively (for development)
    ./dist/anytype serve
-   
-   # Or install as system service
+
+   # Or install as user service
    ./dist/anytype service install
    ./dist/anytype service start
    ```
@@ -77,7 +77,7 @@ make build-windows-amd64
    go test ./cmd/...
    
    # Run specific test
-   go test -run TestValidateMnemonic ./core
+   go test -run TestValidateAccountKey ./core
    
    # Run tests with verbose output
    go test -v ./...
@@ -86,7 +86,7 @@ make build-windows-amd64
 ## Architecture Overview
 
 ### Embedded Server Architecture
-The CLI embeds the anytype-heart gRPC server directly, creating a self-contained binary. This eliminates the need for separate server installation or management. The server runs either interactively (`anytype serve`) or as a system service.
+The CLI embeds the anytype-heart gRPC server directly, creating a self-contained binary. This eliminates the need for separate server installation or management. The server runs either interactively (`anytype serve`) or as a user service.
 
 ### Command Structure (`/cmd/`)
 - Uses Cobra framework for CLI commands
@@ -119,13 +119,13 @@ The CLI embeds the anytype-heart gRPC server directly, creating a self-contained
 - `google.golang.org/grpc v1.74.2`: gRPC client-server communication
 - `github.com/zalando/go-keyring v0.2.6`: Secure credential storage in system keyring
 - `github.com/cheggaaa/mb/v3 v3.0.2`: Message batching queue for event handling
-- `github.com/kardianos/service v1.2.4`: Cross-platform system service management
+- `github.com/kardianos/service v1.2.4`: Cross-platform user service management
 - `github.com/anyproto/tantivy-go v1.0.4`: Full-text search capabilities (requires CGO)
 
 ## Important Notes
 
-1. **Service Architecture**: The CLI includes an embedded gRPC server that runs as a system service or interactively
-2. **Cross-Platform Service**: Works on Windows (Service), macOS (launchd), Linux (systemd/upstart/sysv)
+1. **Service Architecture**: The CLI includes an embedded gRPC server that runs as a user service or interactively
+2. **Cross-Platform Service**: Works on Windows (User Service), macOS (User Agent/launchd), Linux (systemd user service)
 3. **Keyring Integration**: Authentication tokens are stored securely in the system keyring
 4. **Port Configuration**:
    - gRPC: localhost:31007
@@ -196,7 +196,7 @@ func NewConfigCmd() *cobra.Command {
 ### Working with the Service
 - Service is managed via the `anytype service` command
 - Service program implementation is in `core/serviceprogram/`
-- Supports both interactive mode (`anytype serve`) and system service installation
+- Supports both interactive mode (`anytype serve`) and user service installation
 - Service logs are written to log files in the user's home directory (~/.anytype/logs/)
 
 ### Error Handling

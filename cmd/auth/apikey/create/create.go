@@ -3,6 +3,7 @@ package create
 import (
 	"github.com/spf13/cobra"
 
+	"github.com/anyproto/anytype-cli/cmd/cmdutil"
 	"github.com/anyproto/anytype-cli/core"
 	"github.com/anyproto/anytype-cli/core/output"
 )
@@ -12,7 +13,7 @@ func NewCreateCmd() *cobra.Command {
 		Use:   "create [name]",
 		Short: "Create a new API key",
 		Long:  "Create a new API key for programmatic access to Anytype",
-		Args:  cobra.ExactArgs(1),
+		Args:  cmdutil.ExactArgs(1, "cannot create API key: name argument required"),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			name := args[0]
 

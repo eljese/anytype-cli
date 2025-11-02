@@ -3,6 +3,7 @@ package revoke
 import (
 	"github.com/spf13/cobra"
 
+	"github.com/anyproto/anytype-cli/cmd/cmdutil"
 	"github.com/anyproto/anytype-cli/core"
 	"github.com/anyproto/anytype-cli/core/output"
 )
@@ -12,7 +13,7 @@ func NewRevokeCmd() *cobra.Command {
 		Use:   "revoke <id>",
 		Short: "Revoke an API key",
 		Long:  "Revoke an API key by its Id",
-		Args:  cobra.ExactArgs(1),
+		Args:  cmdutil.ExactArgs(1, "cannot revoke API key: Id argument required"),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			appId := args[0]
 

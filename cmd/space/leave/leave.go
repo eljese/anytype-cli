@@ -3,6 +3,7 @@ package leave
 import (
 	"github.com/spf13/cobra"
 
+	"github.com/anyproto/anytype-cli/cmd/cmdutil"
 	"github.com/anyproto/anytype-cli/core"
 	"github.com/anyproto/anytype-cli/core/output"
 )
@@ -12,7 +13,7 @@ func NewLeaveCmd() *cobra.Command {
 		Use:   "leave <space-id>",
 		Short: "Leave a space",
 		Long:  "Leave a space and stop sharing it",
-		Args:  cobra.ExactArgs(1),
+		Args:  cmdutil.ExactArgs(1, "cannot leave space: space-id argument required"),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			spaceId := args[0]
 

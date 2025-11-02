@@ -1,14 +1,15 @@
 package join
 
 import (
-	"github.com/anyproto/anytype-cli/core/config"
-	"github.com/anyproto/anytype-cli/core/output"
 	"net/url"
 	"strings"
 
 	"github.com/spf13/cobra"
 
+	"github.com/anyproto/anytype-cli/cmd/cmdutil"
 	"github.com/anyproto/anytype-cli/core"
+	"github.com/anyproto/anytype-cli/core/config"
+	"github.com/anyproto/anytype-cli/core/output"
 )
 
 func NewJoinCmd() *cobra.Command {
@@ -22,7 +23,7 @@ func NewJoinCmd() *cobra.Command {
 		Use:   "join <invite-link>",
 		Short: "Join a space",
 		Long:  "Join a space using an invite link (https://invite.any.coop/...)",
-		Args:  cobra.ExactArgs(1),
+		Args:  cmdutil.ExactArgs(1, "cannot join space: invite-link argument required"),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			input := args[0]
 			var spaceId string
@@ -68,9 +69,9 @@ func NewJoinCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVar(&networkId, "network", "", "Network Id (optional, defaults to Anytype network address)")
-	cmd.Flags().StringVar(&inviteCid, "invite-cid", "", "Invite Cid (optional, extracted from invite link if provided)")
-	cmd.Flags().StringVar(&inviteFileKey, "invite-key", "", "Invite file key (optional, extracted from invite link if provided)")
+	cmd.Flags().StringVar(&networkId, "network", "", "Network `id` to join")
+	cmd.Flags().StringVar(&inviteCid, "invite-cid", "", "Invite `cid` (extracted from invite link if not provided)")
+	cmd.Flags().StringVar(&inviteFileKey, "invite-key", "", "Invite file `key` (extracted from invite link if not provided)")
 
 	return cmd
 }

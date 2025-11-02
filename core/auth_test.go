@@ -97,60 +97,66 @@ func TestGetDefaultWorkDir(t *testing.T) {
 	}
 }
 
-func TestValidateMnemonic(t *testing.T) {
+func TestValidateAccountKey(t *testing.T) {
 	tests := []struct {
 		name        string
-		mnemonic    string
+		accountKey  string
 		wantErr     bool
 		errContains string
 	}{
 		{
-			name:     "valid 12 word mnemonic",
-			mnemonic: "word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12",
-			wantErr:  false,
+			name:       "valid 64-byte account key (real example)",
+			accountKey: "bNYSkBlOzNMKpDupAgL3g31Hnq7JpeX45O6MCpUqNdt16Avbgy5T5oQECKvAoy3+E4wHGPpCRCVWZQQCXRh7xw==",
+			wantErr:    false,
 		},
 		{
-			name:     "valid 12 words with extra spaces",
-			mnemonic: "word1  word2   word3 word4 word5 word6 word7 word8 word9 word10 word11 word12",
-			wantErr:  false,
+			name:       "valid 32-byte account key (minimum)",
+			accountKey: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+			wantErr:    false,
 		},
 		{
-			name:        "invalid 11 word mnemonic",
-			mnemonic:    "word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11",
-			wantErr:     true,
-			errContains: "must be exactly 12 words, got 11",
-		},
-		{
-			name:        "invalid 13 word mnemonic",
-			mnemonic:    "word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13",
-			wantErr:     true,
-			errContains: "must be exactly 12 words, got 13",
-		},
-		{
-			name:        "empty mnemonic",
-			mnemonic:    "",
+			name:        "empty account key",
+			accountKey:  "",
 			wantErr:     true,
 			errContains: "cannot be empty",
 		},
 		{
-			name:        "whitespace only",
-			mnemonic:    "   ",
+			name:        "mnemonic instead of account key",
+			accountKey:  "word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12",
 			wantErr:     true,
-			errContains: "must be exactly 12 words, got 0",
+			errContains: "appears to be a mnemonic phrase",
+		},
+		{
+			name:        "not valid base64",
+			accountKey:  "this-is-not-valid-base64!!!",
+			wantErr:     true,
+			errContains: "must be valid base64",
+		},
+		{
+			name:        "base64 but insufficient key material",
+			accountKey:  "QUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQQ==", // 30 bytes decoded
+			wantErr:     true,
+			errContains: "insufficient key material",
+		},
+		{
+			name:        "very short base64",
+			accountKey:  "YWJj", // "abc" decoded (3 bytes)
+			wantErr:     true,
+			errContains: "insufficient key material",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := ValidateMnemonic(tt.mnemonic)
+			err := ValidateAccountKey(tt.accountKey)
 
 			if (err != nil) != tt.wantErr {
-				t.Errorf("ValidateMnemonic() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("ValidateAccountKey() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
 			if err != nil && tt.errContains != "" {
 				if !strings.Contains(err.Error(), tt.errContains) {
-					t.Errorf("ValidateMnemonic() error = %q, want to contain %q", err.Error(), tt.errContains)
+					t.Errorf("ValidateAccountKey() error = %q, want to contain %q", err.Error(), tt.errContains)
 				}
 			}
 		})

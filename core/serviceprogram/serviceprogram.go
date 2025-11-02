@@ -89,25 +89,25 @@ func (p *Program) run() {
 }
 
 func (p *Program) attemptAutoLogin() {
-	mnemonic, err := core.GetStoredMnemonic()
-	if err != nil || mnemonic == "" {
-		output.Info("No stored mnemonic found, skipping auto-login")
+	accountKey, err := core.GetStoredAccountKey()
+	if err != nil || accountKey == "" {
+		output.Info("No stored account key found, skipping auto-login")
 		return
 	}
 
-	output.Info("Found stored mnemonic, attempting auto-login...")
+	output.Info("Found stored account key, attempting auto-login...")
 
-	maxRetries := 5
+	maxRetries := 3
 	for i := 0; i < maxRetries; i++ {
-		if err := core.LoginAccount(mnemonic, "", ""); err != nil {
+		if err := core.LoginBotAccount(accountKey, "", ""); err != nil {
 			if i < maxRetries-1 {
 				time.Sleep(2 * time.Second)
 				continue
 			}
-			output.Info("Failed to auto-login after %d attempts: %v", maxRetries, err)
+			output.Info("Failed to auto-login with account key after %d attempts: %v", maxRetries, err)
 		} else {
-			output.Success("Successfully logged in using stored mnemonic")
-			break
+			output.Success("Successfully logged in using stored account key")
+			return
 		}
 	}
 }

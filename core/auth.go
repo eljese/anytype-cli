@@ -3,6 +3,7 @@ package core
 import (
 	"bufio"
 	"context"
+	"encoding/base64"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -43,8 +44,8 @@ func getDefaultWorkDir() string {
 	}
 }
 
-// LoginAccount performs the common steps for logging in with a given mnemonic and root path.
-func LoginAccount(mnemonic, rootPath, apiAddr string) error {
+// LoginBotAccount performs the login steps for a bot account using a bot account key.
+func LoginBotAccount(accountKey, rootPath, apiAddr string) error {
 	if rootPath == "" {
 		rootPath = getDefaultDataPath()
 	}
@@ -53,9 +54,8 @@ func LoginAccount(mnemonic, rootPath, apiAddr string) error {
 	}
 
 	var sessionToken string
-
 	err := GRPCCallNoAuth(func(ctx context.Context, client service.ClientCommandsClient) error {
-		_, err := client.InitialSetParameters(ctx, &pb.RpcInitialSetParametersRequest{
+		resp, err := client.InitialSetParameters(ctx, &pb.RpcInitialSetParametersRequest{
 			Platform: runtime.GOOS,
 			Version:  Version,
 			Workdir:  getDefaultWorkDir(),
@@ -63,27 +63,35 @@ func LoginAccount(mnemonic, rootPath, apiAddr string) error {
 		if err != nil {
 			return fmt.Errorf("failed to set initial parameters: %w", err)
 		}
+		if resp.Error.Code != pb.RpcInitialSetParametersResponseError_NULL {
+			return fmt.Errorf("failed to set initial parameters: %s", resp.Error.Description)
+		}
 
-		_, err = client.WalletRecover(ctx, &pb.RpcWalletRecoverRequest{
-			Mnemonic: mnemonic,
-			RootPath: rootPath,
+		resp2, err := client.WalletRecover(ctx, &pb.RpcWalletRecoverRequest{
+			AccountKey: accountKey,
+			RootPath:   rootPath,
 		})
 		if err != nil {
 			return fmt.Errorf("wallet recovery failed: %w", err)
 		}
+		if resp2.Error.Code != pb.RpcWalletRecoverResponseError_NULL {
+			return fmt.Errorf("wallet recovery failed: %s", resp2.Error.Description)
+		}
 
-		resp, err := client.WalletCreateSession(ctx, &pb.RpcWalletCreateSessionRequest{
-			Auth: &pb.RpcWalletCreateSessionRequestAuthOfMnemonic{
-				Mnemonic: mnemonic,
+		resp3, err := client.WalletCreateSession(ctx, &pb.RpcWalletCreateSessionRequest{
+			Auth: &pb.RpcWalletCreateSessionRequestAuthOfAccountKey{
+				AccountKey: accountKey,
 			},
 		})
 		if err != nil {
 			return fmt.Errorf("failed to create session: %w", err)
 		}
-		sessionToken = resp.Token
+		if resp3.Error.Code != pb.RpcWalletCreateSessionResponseError_NULL {
+			return fmt.Errorf("failed to create session: %s", resp3.Error.Description)
+		}
+		sessionToken = resp3.Token
 		return nil
 	})
-
 	if err != nil {
 		return err
 	}
@@ -150,49 +158,60 @@ func LoginAccount(mnemonic, rootPath, apiAddr string) error {
 	return nil
 }
 
-func ValidateMnemonic(mnemonic string) error {
-	if mnemonic == "" {
-		return fmt.Errorf("mnemonic cannot be empty")
+func ValidateAccountKey(accountKey string) error {
+	if accountKey == "" {
+		return fmt.Errorf("account key cannot be empty")
 	}
 
-	words := strings.Fields(mnemonic)
-	if len(words) != 12 {
-		return fmt.Errorf("mnemonic must be exactly 12 words, got %d", len(words))
+	// Check if this looks like a mnemonic (space-separated words) instead of an account key
+	words := strings.Fields(accountKey)
+	if len(words) >= 12 {
+		return fmt.Errorf("this appears to be a mnemonic phrase, not an account key - the CLI only supports bot accounts created via 'anytype auth create'")
+	}
+
+	// Validate base64 format by attempting to decode
+	decoded, err := base64.StdEncoding.DecodeString(accountKey)
+	if err != nil {
+		return fmt.Errorf("invalid account key format: must be valid base64")
+	}
+
+	// Basic sanity check: key should be at least 32 bytes
+	if len(decoded) < 32 {
+		return fmt.Errorf("invalid account key format: insufficient key material")
 	}
 
 	return nil
 }
 
-func Login(mnemonic, rootPath, apiAddr string) error {
-	usedStoredMnemonic := false
-	if mnemonic == "" {
-		storedMnemonic, err := GetStoredMnemonic()
-		if err == nil && storedMnemonic != "" {
-			mnemonic = storedMnemonic
-			output.Info("Using stored mnemonic from keychain.")
-			usedStoredMnemonic = true
+func LoginBot(accountKey, rootPath, apiAddr string) error {
+	usedStoredKey := false
+	if accountKey == "" {
+		storedKey, err := GetStoredAccountKey()
+		if err == nil && storedKey != "" {
+			accountKey = storedKey
+			output.Info("Using stored account key from keychain.")
+			usedStoredKey = true
 		} else {
-			output.Print("Enter mnemonic (12 words): ")
+			output.Print("Enter account key: ")
 			reader := bufio.NewReader(os.Stdin)
-			mnemonic, _ = reader.ReadString('\n')
-			mnemonic = strings.TrimSpace(mnemonic)
+			accountKey, _ = reader.ReadString('\n')
+			accountKey = strings.TrimSpace(accountKey)
 		}
 	}
 
-	if err := ValidateMnemonic(mnemonic); err != nil {
+	if err := ValidateAccountKey(accountKey); err != nil {
 		return err
 	}
 
-	err := LoginAccount(mnemonic, rootPath, apiAddr)
-	if err != nil {
-		return fmt.Errorf("failed to log in: %w", err)
+	if err := LoginBotAccount(accountKey, rootPath, apiAddr); err != nil {
+		return err
 	}
 
-	if !usedStoredMnemonic {
-		if err := SaveMnemonic(mnemonic); err != nil {
-			output.Warning("failed to save mnemonic in keychain: %v", err)
+	if !usedStoredKey {
+		if err := SaveAccountKey(accountKey); err != nil {
+			output.Warning("failed to save account key in keychain: %v", err)
 		} else {
-			output.Success("Mnemonic saved to keychain.")
+			output.Success("Account key saved to keychain.")
 		}
 	}
 
@@ -231,8 +250,8 @@ func Logout() error {
 		return err
 	}
 
-	if err := DeleteStoredMnemonic(); err != nil {
-		return fmt.Errorf("failed to delete stored mnemonic: %w", err)
+	if err := DeleteStoredAccountKey(); err != nil {
+		return fmt.Errorf("failed to delete stored account key: %w", err)
 	}
 
 	if err := DeleteStoredToken(); err != nil {
@@ -249,8 +268,8 @@ func Logout() error {
 	return nil
 }
 
-// CreateWallet creates a new wallet with the given root path and returns the mnemonic and account Id
-func CreateWallet(name, rootPath, apiAddr string) (string, string, error) {
+// CreateBotWallet creates a new bot wallet with the given root path and returns the account key and account Id
+func CreateBotWallet(name, rootPath, apiAddr string) (string, string, error) {
 	if rootPath == "" {
 		rootPath = getDefaultDataPath()
 	}
@@ -258,8 +277,8 @@ func CreateWallet(name, rootPath, apiAddr string) (string, string, error) {
 		apiAddr = config.DefaultAPIAddress
 	}
 
-	var mnemonic string
 	var sessionToken string
+	var accountKey string
 
 	err := GRPCCallNoAuth(func(ctx context.Context, client service.ClientCommandsClient) error {
 		_, err := client.InitialSetParameters(ctx, &pb.RpcInitialSetParametersRequest{
@@ -277,11 +296,11 @@ func CreateWallet(name, rootPath, apiAddr string) (string, string, error) {
 		if err != nil {
 			return fmt.Errorf("wallet creation failed: %w", err)
 		}
-		mnemonic = createResp.Mnemonic
+		accountKey = createResp.AccountKey
 
 		sessionResp, err := client.WalletCreateSession(ctx, &pb.RpcWalletCreateSessionRequest{
-			Auth: &pb.RpcWalletCreateSessionRequestAuthOfMnemonic{
-				Mnemonic: mnemonic,
+			Auth: &pb.RpcWalletCreateSessionRequestAuthOfAccountKey{
+				AccountKey: accountKey,
 			},
 		})
 		if err != nil {
@@ -341,7 +360,9 @@ func CreateWallet(name, rootPath, apiAddr string) (string, string, error) {
 		return "", "", err
 	}
 
-	_ = SaveMnemonic(mnemonic)
+	if err := SaveAccountKey(accountKey); err != nil {
+		output.Warning("failed to save account key: %v", err)
+	}
 
 	configMgr := config.GetConfigManager()
 	if err := configMgr.Load(); err != nil {
@@ -356,5 +377,5 @@ func CreateWallet(name, rootPath, apiAddr string) (string, string, error) {
 		}
 	}
 
-	return mnemonic, accountId, nil
+	return accountKey, accountId, nil
 }

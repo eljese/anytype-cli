@@ -16,7 +16,7 @@ Install the latest release with a single command:
 # Run the Anytype server
 anytype serve
 
-# Or install as a system service
+# Or install as a user service
 anytype service install
 anytype service start
 
@@ -35,7 +35,7 @@ anytype <command> <subcommand> [flags]
 Commands:
   auth        Manage authentication and accounts
   serve       Run anytype in foreground
-  service     Manage anytype as a system service
+  service     Manage anytype as a user service
   shell       Start interactive shell mode
   space       Manage spaces
   update      Update to the latest version
@@ -43,7 +43,7 @@ Commands:
 
 Examples:
   anytype serve                     # Run in foreground
-  anytype service install           # Install as system service
+  anytype service install           # Install as user service
   anytype service start             # Start the service
   anytype auth login                # Log in to your account
   anytype auth create               # Create a new account
@@ -62,9 +62,9 @@ anytype serve
 ```
 This runs the server in the foreground with logs output to stdout, similar to `ollama serve`.
 
-#### 2. System Service (for production)
+#### 2. User Service (for production)
 ```bash
-# Install as system service
+# Install as user service
 anytype service install
 
 # Start the service
@@ -81,9 +81,9 @@ anytype service uninstall
 ```
 
 The service management works across platforms:
-- **macOS**: Uses launchd
-- **Linux**: Uses systemd/upstart/sysv
-- **Windows**: Uses Windows Service
+- **macOS**: Uses User Agent (launchd)
+- **Linux**: Uses systemd user service
+- **Windows**: Uses Windows User Service
 
 ### Authentication
 
@@ -171,11 +171,8 @@ cd anytype-cli
 # Build the CLI (automatically downloads tantivy library)
 make build
 
-# Install system-wide (may require sudo)
+# Install to ~/.local/bin (user installation)
 make install
-
-# Install to ~/.local/bin (no sudo required)
-make install-local
 
 # Run tests
 go test ./...
@@ -190,11 +187,8 @@ make cross-compile
 #### Uninstall
 
 ```bash
-# Remove system-wide installation
+# Remove installation from ~/.local/bin
 make uninstall
-
-# Remove user-local installation
-make uninstall-local
 ```
 
 ## Contribution

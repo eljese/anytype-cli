@@ -74,7 +74,7 @@ func (er *EventReceiver) receiveLoop(ctx context.Context) {
 	for {
 		event, err := er.stream.Recv()
 		if errors.Is(err, io.EOF) {
-			output.Info("🔄 Event stream ended")
+			output.Info("Event stream ended")
 			return
 		}
 		if err != nil {

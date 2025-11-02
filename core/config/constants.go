@@ -2,8 +2,7 @@ package config
 
 const (
 	// Default addresses
-	DefaultBindAddress = "0.0.0.0"
-	LocalhostIP        = "127.0.0.1"
+	LocalhostIP = "127.0.0.1"
 
 	// Port configuration
 	GRPCPort    = "31007"
@@ -13,7 +12,7 @@ const (
 	// Full addresses
 	DefaultGRPCAddress    = LocalhostIP + ":" + GRPCPort
 	DefaultGRPCWebAddress = LocalhostIP + ":" + GRPCWebPort
-	DefaultAPIAddress     = DefaultBindAddress + ":" + APIPort
+	DefaultAPIAddress     = LocalhostIP + ":" + APIPort
 
 	// URLs
 	GRPCDNSAddress = "dns:///" + DefaultGRPCAddress
