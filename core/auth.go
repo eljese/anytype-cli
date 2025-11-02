@@ -12,7 +12,6 @@ import (
 
 	"github.com/anyproto/anytype-heart/pb"
 	"github.com/anyproto/anytype-heart/pb/service"
-	"github.com/zalando/go-keyring"
 
 	"github.com/anyproto/anytype-cli/core/config"
 	"github.com/anyproto/anytype-cli/core/output"
@@ -71,9 +70,13 @@ func Authenticate(accountKey, rootPath, apiAddr string) error {
 		return err
 	}
 
-	err = SaveToken(sessionToken)
+	savedToKeyring, err := SaveToken(sessionToken)
 	if err != nil {
 		return fmt.Errorf("failed to save session token: %w", err)
+	}
+	if !savedToKeyring {
+		output.Warning("System keyring unavailable (requires D-Bus on Linux, Keychain on macOS, Credential Manager on Windows)")
+		output.Warning("Storing credentials in config file: %s (insecure)", config.GetConfigManager().GetFilePath())
 	}
 
 	er, err := ListenForEvents(sessionToken)
@@ -170,10 +173,13 @@ func Login(accountKey, rootPath, apiAddr string) error {
 		return err
 	}
 
-	if err := SaveAccountKey(accountKey); err != nil {
-		output.Warning("failed to save account key in keychain: %v", err)
-	} else {
+	savedToKeyring, err := SaveAccountKey(accountKey)
+	if err != nil {
+		output.Warning("Failed to save account key: %v", err)
+	} else if savedToKeyring {
 		output.Success("Account key saved to keychain.")
+	} else {
+		output.Success("Account key saved to config file.")
 	}
 
 	return nil
@@ -184,7 +190,7 @@ func Login(accountKey, rootPath, apiAddr string) error {
 func Logout() error {
 	token, err := GetStoredToken()
 	if err != nil {
-		if errors.Is(err, keyring.ErrNotFound) {
+		if errors.Is(err, ErrNotFound) {
 			return fmt.Errorf("not logged in")
 		}
 		return fmt.Errorf("failed to get stored token: %w", err)
@@ -235,8 +241,8 @@ func Logout() error {
 }
 
 // CreateWallet creates a new wallet and account, establishes a session,
-// saves credentials, and returns the account key and account ID.
-func CreateWallet(name, rootPath, apiAddr string) (string, string, error) {
+// saves credentials, and returns the account key, account ID, and whether credentials were saved to keyring.
+func CreateWallet(name, rootPath, apiAddr string) (string, string, bool, error) {
 	if rootPath == "" {
 		rootPath = config.GetDataDir()
 	}
@@ -278,17 +284,21 @@ func CreateWallet(name, rootPath, apiAddr string) (string, string, error) {
 	})
 
 	if err != nil {
-		return "", "", err
+		return "", "", false, err
 	}
 
-	err = SaveToken(sessionToken)
+	savedToKeyring, err := SaveToken(sessionToken)
 	if err != nil {
-		return "", "", fmt.Errorf("failed to save session token: %w", err)
+		return "", "", false, fmt.Errorf("failed to save session token: %w", err)
+	}
+	if !savedToKeyring {
+		output.Warning("System keyring unavailable (requires D-Bus on Linux, Keychain on macOS, Credential Manager on Windows)")
+		output.Warning("Storing credentials in config file: %s (insecure)", config.GetConfigManager().GetFilePath())
 	}
 
 	_, err = ListenForEvents(sessionToken)
 	if err != nil {
-		return "", "", fmt.Errorf("failed to start event listener: %w", err)
+		return "", "", false, fmt.Errorf("failed to start event listener: %w", err)
 	}
 
 	var accountId string
@@ -305,7 +315,7 @@ func CreateWallet(name, rootPath, apiAddr string) (string, string, error) {
 		return nil
 	})
 	if err != nil {
-		return "", "", err
+		return "", "", false, err
 	}
 
 	var techSpaceId string
@@ -324,11 +334,12 @@ func CreateWallet(name, rootPath, apiAddr string) (string, string, error) {
 		return nil
 	})
 	if err != nil {
-		return "", "", err
+		return "", "", false, err
 	}
 
-	if err := SaveAccountKey(accountKey); err != nil {
-		output.Warning("failed to save account key: %v", err)
+	accountKeySavedToKeyring, err := SaveAccountKey(accountKey)
+	if err != nil {
+		output.Warning("Failed to save account key: %v", err)
 	}
 
 	if err := config.SetAccountIdToConfig(accountId); err != nil {
@@ -340,5 +351,5 @@ func CreateWallet(name, rootPath, apiAddr string) (string, string, error) {
 		}
 	}
 
-	return accountKey, accountId, nil
+	return accountKey, accountId, accountKeySavedToKeyring, nil
 }

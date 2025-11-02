@@ -5,8 +5,6 @@ import (
 
 	"github.com/anyproto/anytype-cli/core/config"
 	"github.com/zalando/go-keyring"
-
-	"github.com/anyproto/anytype-cli/core/output"
 )
 
 const (
@@ -17,6 +15,7 @@ const (
 
 var (
 	keyringUnavailable = false
+	ErrNotFound        = errors.New("credentials not found")
 )
 
 // isKeyringAvailable checks if the keyring is accessible
@@ -34,15 +33,14 @@ func isKeyringAvailable() bool {
 	return true
 }
 
-func SaveToken(token string) error {
+// SaveToken saves the session token to the keyring if available, otherwise to the config file.
+// Returns true if saved to keyring, false if saved to config file.
+func SaveToken(token string) (bool, error) {
 	if isKeyringAvailable() {
-		return keyring.Set(keyringService, keyringTokenUser, token)
+		return true, keyring.Set(keyringService, keyringTokenUser, token)
 	}
 
-	output.Warning("System keyring unavailable (requires D-Bus on Linux, Keychain on macOS, Credential Manager on Windows)")
-	output.Warning("Storing session token in config file: %s (insecure)", config.GetConfigManager().GetFilePath())
-
-	return config.SetSessionTokenToConfig(token)
+	return false, config.SetSessionTokenToConfig(token)
 }
 
 func GetStoredToken() (string, error) {
@@ -58,7 +56,7 @@ func GetStoredToken() (string, error) {
 
 	token, _ := config.GetSessionTokenFromConfig()
 	if token == "" {
-		return "", keyring.ErrNotFound
+		return "", ErrNotFound
 	}
 	return token, nil
 }
@@ -77,15 +75,14 @@ func DeleteStoredToken() error {
 	return nil
 }
 
-func SaveAccountKey(accountKey string) error {
+// SaveAccountKey saves the account key to the keyring if available, otherwise to the config file.
+// Returns true if saved to keyring, false if saved to config file.
+func SaveAccountKey(accountKey string) (bool, error) {
 	if isKeyringAvailable() {
-		return keyring.Set(keyringService, keyringAccountKeyUser, accountKey)
+		return true, keyring.Set(keyringService, keyringAccountKeyUser, accountKey)
 	}
 
-	output.Warning("System keyring unavailable (requires D-Bus on Linux, Keychain on macOS, Credential Manager on Windows)")
-	output.Warning("Storing account key in config file: %s (insecure)", config.GetConfigManager().GetFilePath())
-
-	return config.SetAccountKeyToConfig(accountKey)
+	return false, config.SetAccountKeyToConfig(accountKey)
 }
 
 func GetStoredAccountKey() (string, error) {
@@ -101,7 +98,7 @@ func GetStoredAccountKey() (string, error) {
 
 	key, _ := config.GetAccountKeyFromConfig()
 	if key == "" {
-		return "", keyring.ErrNotFound
+		return "", ErrNotFound
 	}
 	return key, nil
 }

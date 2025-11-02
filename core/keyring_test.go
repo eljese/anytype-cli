@@ -5,8 +5,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/zalando/go-keyring"
-
 	"github.com/anyproto/anytype-cli/core/config"
 )
 
@@ -29,9 +27,12 @@ func TestKeyringFallback(t *testing.T) {
 
 	testAccountKey := "test-account-key-12345"
 
-	err := SaveAccountKey(testAccountKey)
+	savedToKeyring, err := SaveAccountKey(testAccountKey)
 	if err != nil {
 		t.Fatalf("SaveAccountKey failed: %v", err)
+	}
+	if savedToKeyring {
+		t.Error("Expected SaveAccountKey to return false (config fallback) when keyring unavailable, got true")
 	}
 
 	configMgr := config.GetConfigManager()
@@ -70,7 +71,7 @@ func TestKeyringFallback(t *testing.T) {
 	}
 
 	_, err = GetStoredAccountKey()
-	if !errors.Is(err, keyring.ErrNotFound) {
+	if !errors.Is(err, ErrNotFound) {
 		t.Errorf("Expected ErrNotFound after delete, got %v", err)
 	}
 }
@@ -83,9 +84,12 @@ func TestTokenFallback(t *testing.T) {
 
 	testToken := "test-session-token-67890"
 
-	err := SaveToken(testToken)
+	savedToKeyring, err := SaveToken(testToken)
 	if err != nil {
 		t.Fatalf("SaveToken failed: %v", err)
+	}
+	if savedToKeyring {
+		t.Error("Expected SaveToken to return false (config fallback) when keyring unavailable, got true")
 	}
 
 	configMgr := config.GetConfigManager()
@@ -124,7 +128,7 @@ func TestTokenFallback(t *testing.T) {
 	}
 
 	_, err = GetStoredToken()
-	if !errors.Is(err, keyring.ErrNotFound) {
+	if !errors.Is(err, ErrNotFound) {
 		t.Errorf("Expected ErrNotFound after delete, got %v", err)
 	}
 }
@@ -136,9 +140,12 @@ func TestConfigFilePermissions(t *testing.T) {
 	defer func() { keyringUnavailable = false }()
 
 	testAccountKey := "test-account-key-permissions"
-	err := SaveAccountKey(testAccountKey)
+	savedToKeyring, err := SaveAccountKey(testAccountKey)
 	if err != nil {
 		t.Fatalf("SaveAccountKey failed: %v", err)
+	}
+	if savedToKeyring {
+		t.Error("Expected SaveAccountKey to return false (config fallback) when keyring unavailable, got true")
 	}
 
 	configMgr := config.GetConfigManager()
@@ -172,12 +179,12 @@ func TestEmptyCredentialRetrieval(t *testing.T) {
 	}
 
 	_, err = GetStoredAccountKey()
-	if !errors.Is(err, keyring.ErrNotFound) {
+	if !errors.Is(err, ErrNotFound) {
 		t.Errorf("Expected ErrNotFound for non-existent account key, got %v", err)
 	}
 
 	_, err = GetStoredToken()
-	if !errors.Is(err, keyring.ErrNotFound) {
+	if !errors.Is(err, ErrNotFound) {
 		t.Errorf("Expected ErrNotFound for non-existent token, got %v", err)
 	}
 }

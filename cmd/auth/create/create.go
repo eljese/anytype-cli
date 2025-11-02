@@ -34,15 +34,14 @@ func NewCreateCmd() *cobra.Command {
 				}
 			}
 
-			accountKey, accountId, err := core.CreateWallet(name, rootPath, listenAddress)
+			accountKey, accountId, savedToKeyring, err := core.CreateWallet(name, rootPath, listenAddress)
 			if err != nil {
 				return output.Error("Failed to create account: %w", err)
 			}
 
 			output.Success("Bot account created successfully!")
 
-			output.Warning("IMPORTANT: Save your account key in a secure location.")
-			output.Info("   This is the ONLY way to authenticate your bot account.")
+			output.Warning("IMPORTANT: Save your account key in a secure location. This is the ONLY way to authenticate your bot account.")
 
 			output.Print("")
 			keyLen := len(accountKey)
@@ -74,7 +73,11 @@ func NewCreateCmd() *cobra.Command {
 
 			output.Print("")
 			output.Success("You are now logged in to your new bot account.")
-			output.Success("Account key saved to keychain.")
+			if savedToKeyring {
+				output.Success("Account key saved to keychain.")
+			} else {
+				output.Success("Account key saved to config file.")
+			}
 
 			return nil
 		},
