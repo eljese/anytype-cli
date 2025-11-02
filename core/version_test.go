@@ -154,6 +154,8 @@ func TestGetVersionVerbose(t *testing.T) {
 		"Built: 2024-01-01",
 		"Go:",
 		"OS/Arch:",
+		"Heart:",
+		"URL:",
 	}
 
 	for _, part := range expectedParts {
