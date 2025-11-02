@@ -99,7 +99,7 @@ func (p *Program) attemptAutoLogin() {
 
 	maxRetries := 3
 	for i := 0; i < maxRetries; i++ {
-		if err := core.LoginBotAccount(accountKey, "", ""); err != nil {
+		if err := core.Authenticate(accountKey, "", ""); err != nil {
 			if i < maxRetries-1 {
 				time.Sleep(2 * time.Second)
 				continue

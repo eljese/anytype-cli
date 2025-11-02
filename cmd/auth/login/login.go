@@ -18,7 +18,7 @@ func NewLoginCmd() *cobra.Command {
 		Short: "Log in to your bot account",
 		Long:  "Authenticate using your account key to access your Anytype bot account and stored data.",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if err := core.LoginBot(accountKey, rootPath, listenAddress); err != nil {
+			if err := core.Login(accountKey, rootPath, listenAddress); err != nil {
 				return output.Error("failed to log in: %w", err)
 			}
 			output.Success("Successfully logged in")

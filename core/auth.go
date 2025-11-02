@@ -44,8 +44,9 @@ func getDefaultWorkDir() string {
 	}
 }
 
-// LoginBotAccount performs the login steps for a bot account using a bot account key.
-func LoginBotAccount(accountKey, rootPath, apiAddr string) error {
+// Authenticate performs the full authentication flow for a bot account using an account key.
+// This includes wallet recovery, session creation, account recovery, account selection, and config persistence.
+func Authenticate(accountKey, rootPath, apiAddr string) error {
 	if rootPath == "" {
 		rootPath = getDefaultDataPath()
 	}
@@ -158,24 +159,22 @@ func LoginBotAccount(accountKey, rootPath, apiAddr string) error {
 	return nil
 }
 
+// ValidateAccountKey checks if the provided account key is valid.
 func ValidateAccountKey(accountKey string) error {
 	if accountKey == "" {
 		return fmt.Errorf("account key cannot be empty")
 	}
 
-	// Check if this looks like a mnemonic (space-separated words) instead of an account key
 	words := strings.Fields(accountKey)
 	if len(words) >= 12 {
 		return fmt.Errorf("this appears to be a mnemonic phrase, not an account key - the CLI only supports bot accounts created via 'anytype auth create'")
 	}
 
-	// Validate base64 format by attempting to decode
 	decoded, err := base64.StdEncoding.DecodeString(accountKey)
 	if err != nil {
 		return fmt.Errorf("invalid account key format: must be valid base64")
 	}
 
-	// Basic sanity check: key should be at least 32 bytes
 	if len(decoded) < 32 {
 		return fmt.Errorf("invalid account key format: insufficient key material")
 	}
@@ -183,41 +182,35 @@ func ValidateAccountKey(accountKey string) error {
 	return nil
 }
 
-func LoginBot(accountKey, rootPath, apiAddr string) error {
-	usedStoredKey := false
+// Login handles user interaction for login by prompting for account key if not provided,
+// validating it, performing authentication, and saving the key to keychain.
+func Login(accountKey, rootPath, apiAddr string) error {
 	if accountKey == "" {
-		storedKey, err := GetStoredAccountKey()
-		if err == nil && storedKey != "" {
-			accountKey = storedKey
-			output.Info("Using stored account key from keychain.")
-			usedStoredKey = true
-		} else {
-			output.Print("Enter account key: ")
-			reader := bufio.NewReader(os.Stdin)
-			accountKey, _ = reader.ReadString('\n')
-			accountKey = strings.TrimSpace(accountKey)
-		}
+		output.Print("Enter account key: ")
+		reader := bufio.NewReader(os.Stdin)
+		accountKey, _ = reader.ReadString('\n')
+		accountKey = strings.TrimSpace(accountKey)
 	}
 
 	if err := ValidateAccountKey(accountKey); err != nil {
 		return err
 	}
 
-	if err := LoginBotAccount(accountKey, rootPath, apiAddr); err != nil {
+	if err := Authenticate(accountKey, rootPath, apiAddr); err != nil {
 		return err
 	}
 
-	if !usedStoredKey {
-		if err := SaveAccountKey(accountKey); err != nil {
-			output.Warning("failed to save account key in keychain: %v", err)
-		} else {
-			output.Success("Account key saved to keychain.")
-		}
+	if err := SaveAccountKey(accountKey); err != nil {
+		output.Warning("failed to save account key in keychain: %v", err)
+	} else {
+		output.Success("Account key saved to keychain.")
 	}
 
 	return nil
 }
 
+// Logout logs out the current user by stopping the account, closing the wallet session,
+// deleting stored credentials, and clearing the config.
 func Logout() error {
 	token, err := GetStoredToken()
 	if err != nil {
@@ -268,8 +261,9 @@ func Logout() error {
 	return nil
 }
 
-// CreateBotWallet creates a new bot wallet with the given root path and returns the account key and account Id
-func CreateBotWallet(name, rootPath, apiAddr string) (string, string, error) {
+// CreateWallet creates a new wallet and account, establishes a session,
+// saves credentials, and returns the account key and account ID.
+func CreateWallet(name, rootPath, apiAddr string) (string, string, error) {
 	if rootPath == "" {
 		rootPath = getDefaultDataPath()
 	}

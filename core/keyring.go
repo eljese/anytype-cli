@@ -7,7 +7,7 @@ import (
 const (
 	keyringService        = "anytype-cli"
 	keyringTokenUser      = "session-token"
-	keyringBotAccountUser = "account-key"
+	keyringAccountKeyUser = "account-key"
 )
 
 func SaveToken(token string) error {
@@ -23,13 +23,13 @@ func DeleteStoredToken() error {
 }
 
 func SaveAccountKey(accountKey string) error {
-	return keyring.Set(keyringService, keyringBotAccountUser, accountKey)
+	return keyring.Set(keyringService, keyringAccountKeyUser, accountKey)
 }
 
 func GetStoredAccountKey() (string, error) {
-	return keyring.Get(keyringService, keyringBotAccountUser)
+	return keyring.Get(keyringService, keyringAccountKeyUser)
 }
 
 func DeleteStoredAccountKey() error {
-	return keyring.Delete(keyringService, keyringBotAccountUser)
+	return keyring.Delete(keyringService, keyringAccountKeyUser)
 }
