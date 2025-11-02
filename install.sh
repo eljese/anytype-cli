@@ -136,7 +136,7 @@ download_binary() {
     fi
     
     local binary_path
-    binary_path=$(find "$temp_dir" -type f -perm +111 ! -name "*.tar.gz" ! -name "*.zip" | head -n1)
+    binary_path=$(find "$temp_dir" -type f -executable ! -name "*.tar.gz" ! -name "*.zip" | head -n1)
     
     if [ -z "$binary_path" ] || [ ! -f "$binary_path" ]; then
         error "Binary not found in the extracted archive"
