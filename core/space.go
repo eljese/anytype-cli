@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/anyproto/anytype-cli/core/config"
 	"github.com/anyproto/anytype-heart/pb"
 	"github.com/anyproto/anytype-heart/pb/service"
 	"github.com/anyproto/anytype-heart/pkg/lib/bundle"
@@ -68,7 +69,7 @@ type SpaceListItem struct {
 
 // ListSpaces returns a list of all available spaces
 func ListSpaces() ([]SpaceListItem, error) {
-	techSpaceId, err := GetStoredTechSpaceId()
+	techSpaceId, err := config.GetTechSpaceIdFromConfig()
 	if err != nil {
 		return nil, fmt.Errorf("tech space Id not found in config - please login first: %w", err)
 	}

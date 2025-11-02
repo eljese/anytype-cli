@@ -3,20 +3,10 @@ package config
 import (
 	"os"
 	"path/filepath"
-	"sync"
 	"testing"
 )
 
 func TestConfigManager(t *testing.T) {
-	originalInstance := instance
-	defer func() {
-		instance = originalInstance
-		once = sync.Once{}
-	}()
-
-	instance = nil
-	once = sync.Once{}
-
 	t.Run("SaveAndLoad", func(t *testing.T) {
 		tempDir, err := os.MkdirTemp("", "anytype-config-test")
 		if err != nil {
@@ -90,14 +80,6 @@ func TestConfigManager(t *testing.T) {
 }
 
 func TestGetConfigManager(t *testing.T) {
-	originalHome := os.Getenv("HOME")
-	defer func() {
-		os.Setenv("HOME", originalHome)
-	}()
-
-	testHome := "/test/home"
-	os.Setenv("HOME", testHome)
-
 	cm := GetConfigManager()
 	if cm == nil {
 		t.Fatal("GetConfigManager returned nil")
@@ -106,5 +88,9 @@ func TestGetConfigManager(t *testing.T) {
 	cm2 := GetConfigManager()
 	if cm != cm2 {
 		t.Error("GetConfigManager did not return singleton instance")
+	}
+
+	if cm.filePath == "" {
+		t.Error("GetConfigManager should initialize with a valid file path")
 	}
 }

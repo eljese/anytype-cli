@@ -12,19 +12,15 @@ func NewGetCmd() *cobra.Command {
 		Short: "Get a configuration value",
 		Long:  `Get a specific configuration value or all values if no key is specified`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			configMgr := config.GetConfigManager()
-			if err := configMgr.Load(); err != nil {
-				return output.Error("failed to load config: %w", err)
-			}
-
-			cfg := configMgr.Get()
-
 			if len(args) == 0 {
-				if cfg.AccountId != "" {
-					output.Info("accountId: %s", cfg.AccountId)
+				accountId, _ := config.GetAccountIdFromConfig()
+				techSpaceId, _ := config.GetTechSpaceIdFromConfig()
+
+				if accountId != "" {
+					output.Info("accountId: %s", accountId)
 				}
-				if cfg.TechSpaceId != "" {
-					output.Info("techSpaceId: %s", cfg.TechSpaceId)
+				if techSpaceId != "" {
+					output.Info("techSpaceId: %s", techSpaceId)
 				}
 				return nil
 			}
@@ -32,12 +28,14 @@ func NewGetCmd() *cobra.Command {
 			key := args[0]
 			switch key {
 			case "accountId":
-				if cfg.AccountId != "" {
-					output.Info(cfg.AccountId)
+				accountId, _ := config.GetAccountIdFromConfig()
+				if accountId != "" {
+					output.Info(accountId)
 				}
 			case "techSpaceId":
-				if cfg.TechSpaceId != "" {
-					output.Info(cfg.TechSpaceId)
+				techSpaceId, _ := config.GetTechSpaceIdFromConfig()
+				if techSpaceId != "" {
+					output.Info(techSpaceId)
 				}
 			default:
 				return output.Error("unknown config key: %s", key)

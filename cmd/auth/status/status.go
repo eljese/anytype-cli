@@ -32,10 +32,7 @@ func NewStatusCmd() *cobra.Command {
 				token = t
 			}
 
-			configMgr := config.GetConfigManager()
-			_ = configMgr.Load()
-			cfg := configMgr.Get()
-			accountId := cfg.AccountId
+			accountId, _ := config.GetAccountIdFromConfig()
 
 			isServerRunning := false
 			err := core.GRPCCallNoAuth(func(ctx context.Context, client service.ClientCommandsClient) error {

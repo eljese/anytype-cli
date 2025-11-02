@@ -31,9 +31,9 @@ type ConfigManager struct {
 func GetConfigManager() *ConfigManager {
 	once.Do(func() {
 		instance = &ConfigManager{
-			config: &Config{},
+			config:   &Config{},
+			filePath: GetConfigFilePath(),
 		}
-		instance.filePath = GetConfigFilePath()
 	})
 	return instance
 }
@@ -80,7 +80,7 @@ func (cm *ConfigManager) Save() error {
 		return fmt.Errorf("failed to marshal config: %w", err)
 	}
 
-	if err := os.WriteFile(cm.filePath, data, 0644); err != nil {
+	if err := os.WriteFile(cm.filePath, data, 0600); err != nil {
 		return fmt.Errorf("failed to write config file: %w", err)
 	}
 
@@ -94,6 +94,12 @@ func (cm *ConfigManager) Get() *Config {
 	// Return a copy to prevent external modification
 	configCopy := *cm.config
 	return &configCopy
+}
+
+func (cm *ConfigManager) GetFilePath() string {
+	cm.mu.RLock()
+	defer cm.mu.RUnlock()
+	return cm.filePath
 }
 
 func (cm *ConfigManager) SetAccountId(accountId string) error {

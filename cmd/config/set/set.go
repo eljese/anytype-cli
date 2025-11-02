@@ -18,18 +18,13 @@ func NewSetCmd() *cobra.Command {
 			key := args[0]
 			value := args[1]
 
-			configMgr := config.GetConfigManager()
-			if err := configMgr.Load(); err != nil {
-				return output.Error("failed to load config: %w", err)
-			}
-
 			switch key {
 			case "accountId":
-				if err := configMgr.SetAccountId(value); err != nil {
+				if err := config.SetAccountIdToConfig(value); err != nil {
 					return output.Error("failed to set account Id: %w", err)
 				}
 			case "techSpaceId":
-				if err := configMgr.SetTechSpaceId(value); err != nil {
+				if err := config.SetTechSpaceIdToConfig(value); err != nil {
 					return output.Error("failed to set tech space Id: %w", err)
 				}
 			default:

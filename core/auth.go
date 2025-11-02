@@ -115,15 +115,11 @@ func Authenticate(accountKey, rootPath, apiAddr string) error {
 		return err
 	}
 
-	configMgr := config.GetConfigManager()
-	if err := configMgr.Load(); err != nil {
-		output.Warning("failed to load config: %v", err)
-	}
-	if err := configMgr.SetAccountId(accountId); err != nil {
+	if err := config.SetAccountIdToConfig(accountId); err != nil {
 		output.Warning("failed to save account Id: %v", err)
 	}
 	if techSpaceId != "" {
-		if err := configMgr.SetTechSpaceId(techSpaceId); err != nil {
+		if err := config.SetTechSpaceIdToConfig(techSpaceId); err != nil {
 			output.Warning("failed to save tech space Id: %v", err)
 		}
 	}
@@ -330,15 +326,11 @@ func CreateWallet(name, rootPath, apiAddr string) (string, string, error) {
 		output.Warning("failed to save account key: %v", err)
 	}
 
-	configMgr := config.GetConfigManager()
-	if err := configMgr.Load(); err != nil {
-		output.Warning("failed to load config: %v", err)
-	}
-	if err := configMgr.SetAccountId(accountId); err != nil {
+	if err := config.SetAccountIdToConfig(accountId); err != nil {
 		output.Warning("failed to save account Id: %v", err)
 	}
 	if techSpaceId != "" {
-		if err := configMgr.SetTechSpaceId(techSpaceId); err != nil {
+		if err := config.SetTechSpaceIdToConfig(techSpaceId); err != nil {
 			output.Warning("failed to save tech space Id: %v", err)
 		}
 	}
