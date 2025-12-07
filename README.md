@@ -12,7 +12,9 @@ Install the latest release with a single command:
 
 ## Quick Start
 
-Get up and running with a headless Anytype instance in just a few commands:
+The headless middleware requires a dedicated bot account created via `anytype auth create`. This generates an account key for authentication - mnemonic-based login is not supported. The bot account only has access to spaces it explicitly joins, so access to your data stays contained and can be easily revoked from the desktop app.
+
+Get up and running in just a few commands:
 
 ```bash
 # Run the Anytype server
@@ -35,7 +37,7 @@ anytype space list
 anytype auth apikey create "my-bot-api-key"
 ```
 
-Once running, the API is available at `http://127.0.0.1:31012`. See [Network Configuration](#network-configuration) for remote access options.
+Once running, the API is available at `http://127.0.0.1:31012`. Use your API key to authenticate requests to the endpoints described on the [Developer Portal](https://developers.anytype.io). See [Network Configuration](#network-configuration) for remote access options.
 
 ## Usage
 
