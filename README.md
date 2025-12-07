@@ -12,6 +12,8 @@ Install the latest release with a single command:
 
 ## Quick Start
 
+Get up and running with a headless Anytype instance in just a few commands:
+
 ```bash
 # Run the Anytype server
 anytype serve
@@ -20,12 +22,20 @@ anytype serve
 anytype service install
 anytype service start
 
-# Authenticate with your account
-anytype auth login
+# Create a new bot account
+anytype auth create
 
-# List your spaces
+# Join a space via invite link
+anytype space join <invite-link>
+
+# Verify the space was joined
 anytype space list
+
+# Create an API key for programmatic access
+anytype auth apikey create "my-bot-api-key"
 ```
+
+Once running, the API is available at `http://127.0.0.1:31012`. See [Network Configuration](#network-configuration) for remote access options.
 
 ## Usage
 
@@ -85,6 +95,14 @@ The service management works across platforms:
 - **Linux**: Uses systemd user service
 - **Windows**: Uses Windows User Service
 
+### Network Configuration
+
+By default, the server binds to `127.0.0.1` (localhost only) on ports 31010-31012 and is not accessible from other machines. These ports are intentionally different from the Anytype desktop app (which uses 31007-31009), allowing both to run simultaneously on the same machine.
+
+You can change the API listen address using `--listen-address` (e.g., `--listen-address 0.0.0.0:31012`). For remote access, you can also use a reverse proxy, SSH tunnel, or Docker port mapping to expose the local ports.
+
+**Security note**: Always keep your API keys safe. If ports are exposed externally, third parties with your API key could gain unauthorized access to the spaces your headless instance has access to.
+
 ### Authentication
 
 Manage your Anytype account and authentication:
@@ -127,7 +145,7 @@ Work with Anytype spaces:
 anytype space list
 
 # Join a space
-anytype space join <space-id>
+anytype space join <invite-link>
 
 # Leave a space
 anytype space leave <space-id>
