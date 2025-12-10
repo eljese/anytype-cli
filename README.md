@@ -27,7 +27,8 @@ Install the latest release with a single command:
 
 ## Quick Start
 
-The headless middleware requires a dedicated bot account created via `anytype auth create`. This generates an account key for authentication - mnemonic-based login is not supported. The bot account only has access to spaces it explicitly joins, so access to your data stays contained and can be easily revoked from the desktop app.
+> [!IMPORTANT]
+> The headless middleware requires a dedicated bot account, which you create using `anytype auth create`. This process generates an account key for authentication - mnemonic-based login is not supported. The bot account only has access to spaces it explicitly joins, keeping your data isolated and allowing you to easily revoke its access at any time from the desktop app.
 
 Get up and running in just a few commands:
 
@@ -84,12 +85,15 @@ Use "anytype <command> --help" for more information about a command.
 The CLI embeds anytype-heart as the server that can be run in two ways:
 
 #### 1. Interactive Mode (for development)
+
 ```bash
 anytype serve
 ```
+
 This runs the server in the foreground with logs output to stdout, similar to `ollama serve`.
 
 #### 2. User Service (for production)
+
 ```bash
 # Install as user service
 anytype service install
@@ -108,6 +112,7 @@ anytype service uninstall
 ```
 
 The service management works across platforms:
+
 - **macOS**: Uses User Agent (launchd)
 - **Linux**: Uses systemd user service
 - **Windows**: Uses Windows User Service
