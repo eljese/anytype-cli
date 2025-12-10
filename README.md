@@ -247,4 +247,4 @@ Thank you for your desire to develop Anytype together!
 
 Made by Any — a Swiss association 🇨🇭
 
-Licensed under [Any Source Available License 1.0](./LICENSE.md).
+Licensed under [MIT](./LICENSE.md).
