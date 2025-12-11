@@ -22,7 +22,7 @@ A command-line interface for interacting with [Anytype](https://github.com/anypr
 Install the latest release with a single command:
 
 ```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/anyproto/anytype-cli/HEAD/install.sh)"
+/usr/bin/env bash -c "$(curl -fsSL https://raw.githubusercontent.com/anyproto/anytype-cli/HEAD/install.sh)"
 ```
 
 ## Quick Start
