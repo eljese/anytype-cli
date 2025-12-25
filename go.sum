@@ -42,6 +42,8 @@ github.com/anyproto/any-sync v0.11.6 h1:PH8aYI3mErlwtvNBMD6KDCLRx028NTP4aifa/DEZ
 github.com/anyproto/any-sync v0.11.6/go.mod h1:DFQccPg8y7rsvwXFjyFdAix7sUhg+TY7i9vML8WMOCc=
 github.com/anyproto/anytype-heart v0.46.3 h1:89fznDhfsA9OYOvv3V5Dr+bE3zCJgYdh+jD9DQBZaZ0=
 github.com/anyproto/anytype-heart v0.46.3/go.mod h1:Cku41j9YQEEWPY/CHDBg2b5hvR8A4Aebx+URMs1ruTE=
+github.com/anyproto/anytype-heart v0.47.0 h1:xF3ZOrY1QMS6BZcsYmc3HOwRmkELDo2eL/7pbGGkXyw=
+github.com/anyproto/anytype-heart v0.47.0/go.mod h1:Cku41j9YQEEWPY/CHDBg2b5hvR8A4Aebx+URMs1ruTE=
 github.com/anyproto/anytype-publish-server/publishclient v0.0.0-20250716122732-cdcfe3a126bb h1:X1os44y0QWf1mYGj8BOoYKlXwY5xb94xTQIw1IIKJbY=
 github.com/anyproto/anytype-publish-server/publishclient v0.0.0-20250716122732-cdcfe3a126bb/go.mod h1:OzzODq4OigiRVD2lSOX1iHAoLcxhJDRbZb8n5PLG3WE=
 github.com/anyproto/anytype-push-server/pushclient v0.0.0-20250801122506-553f6c085a23 h1:jXAjKY4g9ec7lDtayIlzM9u0/b3xGS9YgGA6JtRhHfU=
