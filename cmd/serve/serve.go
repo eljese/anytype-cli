@@ -1,6 +1,8 @@
 package serve
 
 import (
+	"os"
+
 	"github.com/kardianos/service"
 	"github.com/spf13/cobra"
 
@@ -9,7 +11,11 @@ import (
 	"github.com/anyproto/anytype-cli/core/serviceprogram"
 )
 
-var listenAddress string
+var (
+	listenAddress string
+	quietMode     bool
+	verboseMode   bool
+)
 
 func NewServeCmd() *cobra.Command {
 	cmd := &cobra.Command{
@@ -21,11 +27,25 @@ func NewServeCmd() *cobra.Command {
 	}
 
 	cmd.Flags().StringVar(&listenAddress, "listen-address", config.DefaultAPIAddress, "API listen address in `host:port` format")
+	cmd.Flags().BoolVarP(&quietMode, "quiet", "q", false, "Suppress most output (only errors)")
+	cmd.Flags().BoolVarP(&verboseMode, "verbose", "v", false, "Show detailed output (debug level)")
 
 	return cmd
 }
 
 func runServer(cmd *cobra.Command, args []string) error {
+	// Configure log level based on flags (before server starts)
+	if quietMode && verboseMode {
+		return output.Error("cannot use --quiet and --verbose together")
+	}
+	if quietMode {
+		os.Setenv("ANYTYPE_LOG_LEVEL", "*=FATAL")
+		os.Setenv("ANYTYPE_LOG_NOGELF", "1")
+	} else if verboseMode {
+		os.Setenv("ANYTYPE_LOG_LEVEL", "*=DEBUG")
+	}
+	// Default (ERROR) is set in grpcserver/server.go if not specified
+
 	svcConfig := &service.Config{
 		Name:        "anytype",
 		DisplayName: "Anytype",
