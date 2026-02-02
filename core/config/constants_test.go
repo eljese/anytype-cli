@@ -140,28 +140,27 @@ func TestGetLogsDir(t *testing.T) {
 }
 
 func TestConstants(t *testing.T) {
-	tests := []struct {
-		name     string
-		constant string
-		expected string
-	}{
-		{"LocalhostIP", LocalhostIP, "127.0.0.1"},
-		{"GRPCPort", GRPCPort, "31010"},
-		{"GRPCWebPort", GRPCWebPort, "31011"},
-		{"APIPort", APIPort, "31012"},
-		{"DefaultGRPCAddress", DefaultGRPCAddress, "127.0.0.1:31010"},
-		{"DefaultGRPCWebAddress", DefaultGRPCWebAddress, "127.0.0.1:31011"},
-		{"DefaultAPIAddress", DefaultAPIAddress, "127.0.0.1:31012"},
-		{"GRPCDNSAddress", GRPCDNSAddress, "dns:///127.0.0.1:31010"},
-		{"AnytypeDirName", AnytypeDirName, ".anytype"},
-		{"ConfigFileName", ConfigFileName, "config.json"},
-		{"DataDirName", DataDirName, "data"},
-		{"LogsDirName", LogsDirName, "logs"},
-		{"AnytypeName", AnytypeName, "anytype"},
-	}
+        tests := []struct {
+                name     string
+                constant string
+                expected string
+        }{
+                {"LocalhostIP", LocalhostIP, "127.0.0.1"},
+                {"GRPCPort", GRPCPort, "31007"},
+                {"GRPCWebPort", GRPCWebPort, "31008"},
+                {"APIPort", APIPort, "31009"},
+                {"DefaultGRPCAddress", DefaultGRPCAddress, "127.0.0.1:31007"},
+                {"DefaultGRPCWebAddress", DefaultGRPCWebAddress, "127.0.0.1:31008"},
+                {"DefaultAPIAddress", DefaultAPIAddress, "127.0.0.1:31009"},
+                {"GRPCDNSAddress", GRPCDNSAddress, "dns:///127.0.0.1:31007"},
+                {"AnytypeDirName", AnytypeDirName, ".anytype"},
+                {"ConfigFileName", ConfigFileName, "config.json"},
+                {"DataDirName", DataDirName, "data"},
+                {"LogsDirName", LogsDirName, "logs"},
+                {"AnytypeName", AnytypeName, "anytype"},
+        }
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+        for _, tt := range tests {		t.Run(tt.name, func(t *testing.T) {
 			if tt.constant != tt.expected {
 				t.Errorf("%s = %v, want %v", tt.name, tt.constant, tt.expected)
 			}
