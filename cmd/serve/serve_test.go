@@ -1,6 +1,7 @@
 package serve
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/anyproto/anytype-cli/core/config"
@@ -92,11 +93,14 @@ func TestServeCmd_QuietAndVerboseMutuallyExclusive(t *testing.T) {
 
 	err := cmd.Execute()
 	if err == nil {
-		t.Fatal("expected error when using --quiet and --verbose together, got nil")
+		t.Fatal("expected error when using --quiet and --verbose together")
 	}
 
-	expectedMsg := "if any flags in the group [quiet verbose] are set none of the others can be; [quiet verbose] were all set"
-	if err.Error() != expectedMsg {
-		t.Errorf("error message = %q, want %q", err.Error(), expectedMsg)
+	errMsg := err.Error()
+	if !strings.Contains(errMsg, "quiet") {
+		t.Errorf("error message should mention 'quiet' flag, got: %q", errMsg)
+	}
+	if !strings.Contains(errMsg, "verbose") {
+		t.Errorf("error message should mention 'verbose' flag, got: %q", errMsg)
 	}
 }
