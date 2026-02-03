@@ -29,6 +29,14 @@ func NewJoinCmd() *cobra.Command {
 			var spaceId string
 
 			if networkId == "" {
+				if networkConfigPath, _ := config.GetNetworkConfigPathFromConfig(); networkConfigPath != "" {
+					if id, err := config.GetNetworkIdFromConfigYAML(networkConfigPath); err == nil {
+						networkId = id
+					}
+				}
+			}
+
+			if networkId == "" {
 				networkId = config.AnytypeNetworkAddress
 			}
 

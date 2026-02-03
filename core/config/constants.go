@@ -11,14 +11,16 @@ const (
 	LocalhostIP = "127.0.0.1"
 
 	// Port configuration
-	GRPCPort    = "31010"
-	GRPCWebPort = "31011"
-	APIPort     = "31012"
+	GRPCPort    = "31007"
+	GRPCWebPort = "31008"
+	APIPort     = "31009"
+	InternalAPIPort = "31010"
 
 	// Full addresses
 	DefaultGRPCAddress    = LocalhostIP + ":" + GRPCPort
 	DefaultGRPCWebAddress = LocalhostIP + ":" + GRPCWebPort
 	DefaultAPIAddress     = LocalhostIP + ":" + APIPort
+	DefaultInternalAPIAddress = LocalhostIP + ":" + InternalAPIPort
 
 	// URLs
 	GRPCDNSAddress = "dns:///" + DefaultGRPCAddress

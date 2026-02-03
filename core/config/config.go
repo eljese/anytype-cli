@@ -13,8 +13,9 @@ type Config struct {
 	TechSpaceId string `json:"techSpaceId,omitempty"`
 	// Credentials stored in plain text - only used when keyring is unavailable
 	// WARNING: This is insecure and should only be used on headless servers
-	AccountKey   string `json:"accountKey,omitempty"`
-	SessionToken string `json:"sessionToken,omitempty"`
+	AccountKey        string `json:"accountKey,omitempty"`
+	SessionToken      string `json:"sessionToken,omitempty"`
+	NetworkConfigPath string `json:"networkConfigPath,omitempty"`
 }
 
 var (
@@ -129,6 +130,14 @@ func (cm *ConfigManager) SetSessionToken(token string) error {
 func (cm *ConfigManager) SetAccountKey(accountKey string) error {
 	cm.mu.Lock()
 	cm.config.AccountKey = accountKey
+	cm.mu.Unlock()
+
+	return cm.Save()
+}
+
+func (cm *ConfigManager) SetNetworkConfigPath(path string) error {
+	cm.mu.Lock()
+	cm.config.NetworkConfigPath = path
 	cm.mu.Unlock()
 
 	return cm.Save()

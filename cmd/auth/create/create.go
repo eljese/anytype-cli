@@ -16,6 +16,7 @@ import (
 func NewCreateCmd() *cobra.Command {
 	var rootPath string
 	var listenAddress string
+	var networkConfig string
 
 	cmd := &cobra.Command{
 		Use:   "create <name>",
@@ -25,7 +26,7 @@ func NewCreateCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			name := args[0]
 
-			accountKey, accountId, savedToKeyring, err := core.CreateWallet(name, rootPath, listenAddress)
+			accountKey, accountId, savedToKeyring, err := core.CreateWallet(name, rootPath, listenAddress, networkConfig)
 			if err != nil {
 				return output.Error("Failed to create account: %w", err)
 			}
@@ -76,6 +77,7 @@ func NewCreateCmd() *cobra.Command {
 
 	cmd.Flags().StringVar(&rootPath, "root-path", "", "Root path for account data")
 	cmd.Flags().StringVar(&listenAddress, "listen-address", config.DefaultAPIAddress, "API listen address in `host:port` format")
+	cmd.Flags().StringVar(&networkConfig, "network-config", "", "Path to network configuration file")
 
 	return cmd
 }

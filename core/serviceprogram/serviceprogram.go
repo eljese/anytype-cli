@@ -115,7 +115,7 @@ func (p *Program) run() {
 	defer p.wg.Done()
 	defer close(p.startCh)
 
-	if err := p.server.Start(config.DefaultGRPCAddress, config.DefaultGRPCWebAddress); err != nil {
+	if err := p.server.Start(config.DefaultGRPCAddress, config.DefaultGRPCWebAddress, p.apiListenAddr, config.DefaultInternalAPIAddress); err != nil {
 		p.startErr = err
 		return
 	}
@@ -138,11 +138,14 @@ func (p *Program) attemptAutoLogin() {
 		return
 	}
 
+	networkConfigPath, _ := config.GetNetworkConfigPathFromConfig()
+
 	output.Info("Found stored account key, attempting auto-login...")
 
 	maxRetries := 3
 	for i := 0; i < maxRetries; i++ {
-		if err := core.Authenticate(accountKey, "", p.apiListenAddr); err != nil {
+		// Use internal API address for Anytype Core to bind to
+		if err := core.Authenticate(accountKey, "", config.DefaultInternalAPIAddress, networkConfigPath); err != nil {
 			if i < maxRetries-1 {
 				time.Sleep(2 * time.Second)
 				continue

@@ -19,12 +19,18 @@ import (
 
 // Authenticate performs the full authentication flow for a bot account using an account key.
 // This includes wallet recovery, session creation, account recovery, account selection, and config persistence.
-func Authenticate(accountKey, rootPath, apiAddr string) error {
+func Authenticate(accountKey, rootPath, apiAddr, networkConfigPath string) error {
 	if rootPath == "" {
 		rootPath = config.GetDataDir()
 	}
 	if apiAddr == "" {
 		apiAddr = config.DefaultAPIAddress
+	}
+
+	if networkConfigPath == "" {
+		if path, err := config.GetNetworkConfigPathFromConfig(); err == nil {
+			networkConfigPath = path
+		}
 	}
 
 	var sessionToken string
@@ -103,11 +109,16 @@ func Authenticate(accountKey, rootPath, apiAddr string) error {
 
 	var techSpaceId string
 	err = GRPCCall(func(ctx context.Context, client service.ClientCommandsClient) error {
-		resp, err := client.AccountSelect(ctx, &pb.RpcAccountSelectRequest{
+		req := &pb.RpcAccountSelectRequest{
 			Id:                accountId,
 			JsonApiListenAddr: apiAddr,
 			RootPath:          rootPath,
-		})
+		}
+		if networkConfigPath != "" {
+			req.NetworkMode = pb.RpcAccount_CustomConfig
+			req.NetworkCustomConfigFilePath = networkConfigPath
+		}
+		resp, err := client.AccountSelect(ctx, req)
 		if err != nil {
 			return fmt.Errorf("failed to select account: %w", err)
 		}
@@ -157,7 +168,7 @@ func ValidateAccountKey(accountKey string) error {
 
 // Login handles user interaction for login by prompting for account key if not provided,
 // validating it, performing authentication, and saving the key to keychain.
-func Login(accountKey, rootPath, apiAddr string) error {
+func Login(accountKey, rootPath, apiAddr, networkConfigPath string) error {
 	if accountKey == "" {
 		output.Print("Enter account key: ")
 		reader := bufio.NewReader(os.Stdin)
@@ -169,7 +180,7 @@ func Login(accountKey, rootPath, apiAddr string) error {
 		return err
 	}
 
-	if err := Authenticate(accountKey, rootPath, apiAddr); err != nil {
+	if err := Authenticate(accountKey, rootPath, apiAddr, networkConfigPath); err != nil {
 		return err
 	}
 
@@ -242,7 +253,7 @@ func Logout() error {
 
 // CreateWallet creates a new wallet and account, establishes a session,
 // saves credentials, and returns the account key, account ID, and whether credentials were saved to keyring.
-func CreateWallet(name, rootPath, apiAddr string) (string, string, bool, error) {
+func CreateWallet(name, rootPath, apiAddr, networkConfigPath string) (string, string, bool, error) {
 	if rootPath == "" {
 		rootPath = config.GetDataDir()
 	}
@@ -303,11 +314,16 @@ func CreateWallet(name, rootPath, apiAddr string) (string, string, bool, error) 
 
 	var accountId string
 	err = GRPCCall(func(ctx context.Context, client service.ClientCommandsClient) error {
-		resp, err := client.AccountCreate(ctx, &pb.RpcAccountCreateRequest{
+		req := &pb.RpcAccountCreateRequest{
 			Name:              name,
 			StorePath:         rootPath,
 			JsonApiListenAddr: apiAddr,
-		})
+		}
+		if networkConfigPath != "" {
+			req.NetworkMode = pb.RpcAccount_CustomConfig
+			req.NetworkCustomConfigFilePath = networkConfigPath
+		}
+		resp, err := client.AccountCreate(ctx, req)
 		if err != nil {
 			return fmt.Errorf("account creation failed: %w", err)
 		}
@@ -320,11 +336,16 @@ func CreateWallet(name, rootPath, apiAddr string) (string, string, bool, error) 
 
 	var techSpaceId string
 	err = GRPCCall(func(ctx context.Context, client service.ClientCommandsClient) error {
-		resp, err := client.AccountSelect(ctx, &pb.RpcAccountSelectRequest{
+		req := &pb.RpcAccountSelectRequest{
 			Id:                accountId,
 			JsonApiListenAddr: apiAddr,
 			RootPath:          rootPath,
-		})
+		}
+		if networkConfigPath != "" {
+			req.NetworkMode = pb.RpcAccount_CustomConfig
+			req.NetworkCustomConfigFilePath = networkConfigPath
+		}
+		resp, err := client.AccountSelect(ctx, req)
 		if err != nil {
 			return fmt.Errorf("failed to select account: %w", err)
 		}
@@ -348,6 +369,12 @@ func CreateWallet(name, rootPath, apiAddr string) (string, string, bool, error) 
 	if techSpaceId != "" {
 		if err := config.SetTechSpaceIdToConfig(techSpaceId); err != nil {
 			output.Warning("Failed to save tech space Id: %v", err)
+		}
+	}
+
+	if networkConfigPath != "" {
+		if err := config.SetNetworkConfigPathToConfig(networkConfigPath); err != nil {
+			output.Warning("Failed to save network config path: %v", err)
 		}
 	}
 
